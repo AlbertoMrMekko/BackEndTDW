@@ -303,15 +303,151 @@ function profileForm() {
 
 function loadIndexTable() {
     let section = document.createElement("section");
-    let table = document.createElement("table");
-    let thead = loadthead();
-    let tbody = loadtbody();
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    section.appendChild(table);
-    return(section);
+    let tableProducts = createTable("Productos");
+    let tablePeople = createTable("Personas");
+    let tableEntities = createTable("Entidades");
+    section.appendChild(tableProducts);
+    section.appendChild(tablePeople);
+    section.appendChild(tableEntities);
+    createProductstbody("/products", tableProducts);
+    createPeopletbody("/persons", tablePeople);
+    createEntitiestbody("/entities", tableEntities);
+    return section;
 }
 
+function createTable(title) {
+    let table = document.createElement("table");
+    let thead = document.createElement("thead");
+    thead.innerHTML = '<p class = "subtitle">' + title + '</p>';
+    table.appendChild(thead);
+    let tbody = document.createElement("tbody");
+    table.appendChild(tbody);
+    return table;
+}
+
+function createProductstbody(url, table) {
+    getElementsFromDB(url, function(response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayProducts = jsonResponse.products;
+        let products = arrayProducts.map(function(item) {
+            let p = item.product;
+            return new Product(p.id, p.name, null, null, p.imageUrl, null, null, null);
+        });
+
+        if(userRole === "reader")
+            createReadertbody(products, table, showProduct());
+        else
+            createWritertbody(products, table, showProduct(), editProduct(), deleteProduct(), createProduct());
+    });
+}
+
+function createPeopletbody(url, table) {
+    getElementsFromDB(url, function(response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayPeople = jsonResponse.persons;
+        let people = arrayPeople.map(function(item) {
+            let p = item.person;
+            return new Person(p.id, p.name, null, null, p.imageUrl, null, null, null);
+        });
+        if(userRole === "reader")
+            createReadertbody(people, table, showPerson());
+        else
+            createWritertbody(people, table, showPerson(), editPerson(), deletePerson(), createPerson());
+    });
+}
+
+function createEntitiestbody(url, table) {
+    getElementsFromDB(url, function(response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayEntities = jsonResponse.entities;
+        let entities = arrayEntities.map(function(item) {
+            let e = item.entity;
+            return new Entity(e.id, e.name, null, null, e.imageUrl, null, null, null);
+        });
+        if(userRole === "reader")
+            createReadertbody(entities, table, showEntity());
+        else
+            createWritertbody(entities, table, showEntity(), editEntity(), deleteEntity(), createEntity());
+    });
+}
+
+function createReadertbody(elements, table, showf) {
+    for (let i = 0; i < elements.length; i++) {
+        let element = elements[i];
+        let tr = document.createElement("tr");
+        let td = document.createElement("td");
+
+        // meter en td la info.
+        let img = document.createElement("img");
+        img.setAttribute("src", element.image);
+        img.setAttribute("alt", element.name);
+        img.setAttribute("width", "5%");
+        td.appendChild(img);
+        let a = document.createElement("a");
+        let productName = document.createTextNode(element.name);
+        a.appendChild(productName);
+        a.setAttribute("id", element.id);
+        a.addEventListener('click', showf);
+        td.appendChild(a);
+
+        tr.appendChild(td);
+        table.querySelector("tbody").appendChild(tr);
+    }
+}
+
+function createWritertbody(elements, table, showf, editf, deletef, createf) {
+    let tr;
+    let td;
+    for (let i = 0; i < elements.length; i++) {
+        let element = elements[i];
+        tr = document.createElement("tr");
+        td = document.createElement("td");
+
+        // meter en td la info.
+        let img = document.createElement("img");
+        img.setAttribute("src", element.image);
+        img.setAttribute("alt", element.name);
+        img.setAttribute("width", "5%");
+        td.appendChild(img);
+        let a = document.createElement("a");
+        let productName = document.createTextNode(element.name);
+        a.appendChild(productName);
+        a.setAttribute("id", element.id);
+        a.addEventListener('click', showf);
+        td.appendChild(a);
+        let editButton = document.createElement("button");
+        editButton.setAttribute("id", element.id);
+        editButton.type = "button";
+        editButton.innerText = "Editar";
+        editButton.addEventListener('click', editf);
+        td.appendChild(editButton);
+        let deleteButton = document.createElement("button");
+        deleteButton.setAttribute("id", element.id);
+        deleteButton.type = "button";
+        deleteButton.innerText = "Borrar";
+        deleteButton.addEventListener('click', deletef);
+        td.appendChild(deleteButton);
+
+        tr.appendChild(td);
+        table.querySelector("tbody").appendChild(tr);
+    }
+    tr = document.createElement("tr");
+    td = document.createElement("td");
+    let createButton = document.createElement("button");
+    createButton.type = "button";
+    createButton.setAttribute("class", "createButton");
+    createButton.innerText = "Crear";
+    createButton.addEventListener('click', createf);
+    td.appendChild(createButton);
+    tr.appendChild(td);
+    table.querySelector("tbody").appendChild(tr);
+}
+
+
+
+
+
+/*
 function loadthead() {
     let thead = document.createElement("thead");
     let trHead = document.createElement("tr");
@@ -338,9 +474,10 @@ function loadthead() {
     trHead.appendChild(tdHead3);
     thead.appendChild(trHead);
     return(thead);
-}
+}*/
 
-function loadtbody() {
+/*
+function loadtbody(callback) {
     let tbody = document.createElement("tbody");
     let products;
     let people;
@@ -348,33 +485,47 @@ function loadtbody() {
     let receivedElements = 0;
     getElementsFromDB("/products", function (response) {
         let jsonResponse = JSON.parse(response);
-        products = jsonResponse.products;
+        let arrayProducts = jsonResponse.products;
+        products = arrayProducts.map(function (item) {
+            let p = item.product;
+            return new Product(p.id, p.name, p.birthDate, p.deathDate, p.imageUrl, p.wikiUrl);
+        });
         receivedElements++;
-        obtainedElements();
+        if (receivedElements === 3)
+            obtainedElements();
     })
     getElementsFromDB("/persons", function (response) {
         let jsonResponse = JSON.parse(response);
-        people = jsonResponse.persons;
+        let arrayPeople = jsonResponse.persons;
+        people = arrayPeople.map(function(item) {
+            let p = item.person;
+            return new Person(p.id, p.name, p.birthDate, p.deathDate, p.imageUrl, p.wikiUrl);
+        });
         receivedElements++;
-        obtainedElements();
+        if (receivedElements === 3)
+            obtainedElements();
     })
     getElementsFromDB("/entities", function (response) {
         let jsonResponse = JSON.parse(response);
-        entities = jsonResponse.entities;
+        let arrayEntities = jsonResponse.entities;
+        entities = arrayEntities.map(function(item) {
+            let e = item.entity;
+            return new Entity(e.id, e.name, e.birthDate, e.deathDate, e.imageUrl, e.wikiUrl);
+        });
         receivedElements++;
-        obtainedElements();
+        if (receivedElements === 3)
+            obtainedElements();
     })
-    function obtainedElements() {
-        if(receivedElements === 3) {
-            if(userRole === "reader")
-                tbody = loadReadertbody(products, people, entities);
-            else
-                tbody = loadWritertbody(products, people, entities);
-        }
+    function obtainedElements(callback) {
+        if(userRole === "reader")
+            tbody = loadReadertbody(products, people, entities);
+        else
+            tbody = loadWritertbody(products, people, entities);
+        callback(tbody);
     }
-    return tbody;
-}
+}*/
 
+/*
 function loadReadertbody(products, people, entities) {
     let tbody = document.createElement("tbody");
     let maxLength = Math.max(products.length, people.length, entities.length);
@@ -382,11 +533,11 @@ function loadReadertbody(products, people, entities) {
         let tr = document.createElement("tr");
         if(i < products.length) {
             let td1 = document.createElement("td");
-            // let img = document.createElement("img");
-            // img.setAttribute("src", products[i].image);
-            // img.setAttribute("alt", products[i].name);
-            // img.setAttribute("width", "5%");
-            // td1.appendChild(img);
+            let img = document.createElement("img");
+            img.setAttribute("src", products[i].image);
+            img.setAttribute("alt", products[i].name);
+            img.setAttribute("width", "5%");
+            td1.appendChild(img);
             let a = document.createElement("a");
             let productName = document.createTextNode(products[i].name);
             a.appendChild(productName);
@@ -437,11 +588,11 @@ function loadReadertbody(products, people, entities) {
         else {
             let td3 = document.createElement("td");
             tr.appendChild(td3);
-        }*/
+        }
         tbody.appendChild(tr);
     }
     return tbody;
-}
+}*/
 
 
 
@@ -449,13 +600,7 @@ function loadReadertbody(products, people, entities) {
 
 
 
-
-
-
-
-
-
-
+/*
 function loadWritertbody() {
     let tbody = document.createElement("tbody");
     let rawProducts;
@@ -609,7 +754,7 @@ function loadWritertbody() {
         tbody.appendChild(tr);
     }
     return tbody;
-}
+}*/
 
 
 
@@ -725,18 +870,42 @@ function deleteUser(id) {
     loadUserManagement();
 }
 
-function showProduct() {}
-function showPerson() {}
-function showEntity() {}
-function createProduct() {}
-function createPerson() {}
-function createEntity() {}
-function editProduct() {}
-function editPerson() {}
-function editEntity() {}
-function deleteProduct() {}
-function deletePerson() {}
-function deleteEntity() {}
+function showProduct() {
+    clean();
+}
+function showPerson() {
+    clean();
+}
+function showEntity() {
+    clean();
+}
+function createProduct() {
+    clean();
+}
+function createPerson() {
+    clean();
+}
+function createEntity() {
+    clean();
+}
+function editProduct() {
+    clean();
+}
+function editPerson() {
+    clean();
+}
+function editEntity() {
+    clean();
+}
+function deleteProduct() {
+    clean();
+}
+function deletePerson() {
+    clean();
+}
+function deleteEntity() {
+    clean();
+}
 
 
 
