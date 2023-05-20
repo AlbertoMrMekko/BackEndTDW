@@ -64,7 +64,13 @@ function getFromDatabase(relativePath) {
         if(xhr.status === 200) {
             alert("status 200");
             console.log(xhr.response);
-            return(xhr.response);
+            console.log("----------");
+            console.log(JSON.stringify(xhr.response));
+            // return(xhr.response);
+            return(JSON.stringify(xhr.response));
+        }
+        else if(xhr.status === 304){
+            alert("status 304");
         }
         else
             return null;
@@ -184,7 +190,8 @@ function login() {
             else
                 userRole = "reader";
             // cargar index
-            loadIndex();
+            // loadIndex();
+            contenidotabla();
         } else {
             alert("Error: Status = " + xhr.status);
             start();
@@ -319,10 +326,13 @@ function loadthead() {
     return(thead);
 }
 
-function loadWritertbody() { // revisar ids, funciones internas y formato.
+function loadWritertbody() {
     let tbody = document.createElement("tbody");
-    let rawProducts = getFromDatabase("/products");
-    let products = null;
+    let rawProducts;
+    rawProducts = getFromDatabase("/products");
+    alert("rawProducts: " + rawProducts);
+    console.log(rawProducts);
+    let products;
     if(rawProducts != null)
         products = JSON.parse(rawProducts);
     else
@@ -676,6 +686,76 @@ function deleteEntity() {}
 
 
 
+function nosirve() {
+    let variable = "";
+
+    let finalPath = COMMON_PATH + "/products";
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', encodeURI(finalPath), true);
+    xhr.setRequestHeader("Authorization", "Bearer " + access_token);
+    xhr.responseType = "json";
+    xhr.onload = function () {
+        if(xhr.status === 200) {
+            alert("status 200");
+            console.log(("RESPUESTA2: " + JSON.stringify(xhr.response)));
+            variable = JSON.stringify(xhr.response);
+            console.log("VARIABLE: " + variable);
+        }
+        else if(xhr.status === 304){
+            alert("status 304");
+        }
+        else
+            variable = null;
+    }
+    xhr.send();
+
+    alert("Variable = " + variable);
+    console.log("Variable = " + variable);
+}
+
+
+function contenidotabla() {
+    let products;
+    let people;
+    let receivedElements = 0;
+
+    getDB("/products", function (response) {
+        products = response;
+        receivedElements++;
+        obtainedElements();
+    })
+
+    getDB("/persons", function (response) {
+        people = response;
+        receivedElements++;
+        obtainedElements();
+    })
+
+    function obtainedElements() {
+        if(receivedElements === 2) {
+            console.log("Mis products: " + products);
+            console.log("Mis people: " + people);
+        }
+    }
+}
+
+function getDB(relativePath, f) {
+    let finalPath = COMMON_PATH + relativePath;
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', encodeURI(finalPath), true);
+    xhr.setRequestHeader("Authorization", "Bearer " + access_token);
+    xhr.responseType = "json";
+    xhr.onload = function () {
+        if(xhr.status === 200) {
+            alert("status 200");
+            console.log(("RESPUESTA: " + JSON.stringify(xhr.response)));
+            f(JSON.stringify(xhr.response));
+        }
+        else
+            alert("");
+    }
+    xhr.send();
+}
 
 
 
