@@ -54,6 +54,7 @@ function clean() {
     main.innerHTML = "";
 }
 
+/*
 function getFromDatabase(relativePath) {
     let finalPath = COMMON_PATH + relativePath;
     const xhr = new XMLHttpRequest();
@@ -74,6 +75,24 @@ function getFromDatabase(relativePath) {
         }
         else
             return null;
+    }
+    xhr.send();
+}*/
+
+function getElementsFromDB(relativePath, f) {
+    let finalPath = COMMON_PATH + relativePath;
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', encodeURI(finalPath), true);
+    xhr.setRequestHeader("Authorization", "Bearer " + access_token);
+    xhr.responseType = "json";
+    xhr.onload = function () {
+        if(xhr.status === 200)
+            f(JSON.stringify(xhr.response));
+        else {
+            alert("status " + xhr.status);
+            let listName = relativePath.substring(1);
+            f(`"${listName}":[]`); // comprobar
+        }
     }
     xhr.send();
 }
@@ -190,8 +209,7 @@ function login() {
             else
                 userRole = "reader";
             // cargar index
-            // loadIndex();
-            contenidotabla();
+            loadIndex();
         } else {
             alert("Error: Status = " + xhr.status);
             start();
@@ -287,11 +305,7 @@ function loadIndexTable() {
     let section = document.createElement("section");
     let table = document.createElement("table");
     let thead = loadthead();
-    let tbody;
-    if(userRole === "writer")
-        tbody = loadWritertbody();
-    else
-        tbody = loadReadertbody();
+    let tbody = loadtbody();
     table.appendChild(thead);
     table.appendChild(tbody);
     section.appendChild(table);
@@ -325,6 +339,122 @@ function loadthead() {
     thead.appendChild(trHead);
     return(thead);
 }
+
+function loadtbody() {
+    let tbody = document.createElement("tbody");
+    let products;
+    let people;
+    let entities;
+    let receivedElements = 0;
+    getElementsFromDB("/products", function (response) {
+        let jsonResponse = JSON.parse(response);
+        products = jsonResponse.products;
+        receivedElements++;
+        obtainedElements();
+    })
+    getElementsFromDB("/persons", function (response) {
+        let jsonResponse = JSON.parse(response);
+        people = jsonResponse.persons;
+        receivedElements++;
+        obtainedElements();
+    })
+    getElementsFromDB("/entities", function (response) {
+        let jsonResponse = JSON.parse(response);
+        entities = jsonResponse.entities;
+        receivedElements++;
+        obtainedElements();
+    })
+    function obtainedElements() {
+        if(receivedElements === 3) {
+            if(userRole === "reader")
+                tbody = loadReadertbody(products, people, entities);
+            else
+                tbody = loadWritertbody(products, people, entities);
+        }
+    }
+    return tbody;
+}
+
+function loadReadertbody(products, people, entities) {
+    let tbody = document.createElement("tbody");
+    let maxLength = Math.max(products.length, people.length, entities.length);
+    for(let i = 0; i < maxLength; i++) {
+        let tr = document.createElement("tr");
+        if(i < products.length) {
+            let td1 = document.createElement("td");
+            // let img = document.createElement("img");
+            // img.setAttribute("src", products[i].image);
+            // img.setAttribute("alt", products[i].name);
+            // img.setAttribute("width", "5%");
+            // td1.appendChild(img);
+            let a = document.createElement("a");
+            let productName = document.createTextNode(products[i].name);
+            a.appendChild(productName);
+            a.setAttribute("id", products[i].id);
+            a.addEventListener('click', showProduct);
+            td1.appendChild(a);
+            tr.appendChild(td1);
+        }
+        else {
+            let td1 = document.createElement("td");
+            tr.appendChild(td1);
+        }/*
+        if(i < people.length) {
+            let td2 = document.createElement("td");
+            let img = document.createElement("img");
+            img.setAttribute("src", people[i].image);
+            img.setAttribute("alt", people[i].name);
+            img.setAttribute("width", "5%");
+            td2.appendChild(img);
+            let a = document.createElement("a");
+            let personName = document.createTextNode(people[i].name);
+            a.appendChild(personName);
+            a.setAttribute("id", people[i].id);
+            a.addEventListener('click', showPerson);
+            td2.appendChild(a);
+            tr.appendChild(td2);
+        }
+        else {
+            let td2 = document.createElement("td");
+            tr.appendChild(td2);
+        }
+        if(i < entities.length) {
+            let td3 = document.createElement("td");
+
+            let img = document.createElement("img");
+            img.setAttribute("src", entities[i].image);
+            img.setAttribute("alt", entities[i].name);
+            img.setAttribute("width", "5%");
+            td3.appendChild(img);
+            let a = document.createElement("a");
+            let entityName = document.createTextNode(entities[i].name);
+            a.appendChild(entityName);
+            a.setAttribute("id", entities[i].id);
+            a.addEventListener('click', showEntity);
+            td3.appendChild(a);
+            tr.appendChild(td3);
+        }
+        else {
+            let td3 = document.createElement("td");
+            tr.appendChild(td3);
+        }*/
+        tbody.appendChild(tr);
+    }
+    return tbody;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function loadWritertbody() {
     let tbody = document.createElement("tbody");
@@ -481,91 +611,17 @@ function loadWritertbody() {
     return tbody;
 }
 
-function loadReadertbody() { // revisar ids, funciones internas y formato.
-    let tbody = document.createElement("tbody");
-    let rawProducts = getFromDatabase("/products");
-    let products = null;
-    if(rawProducts != null)
-        products = JSON.parse(rawProducts);
-    else
-        products = [];
-    let rawPeople = getFromDatabase("/persons");
-    let people = null;
-    if(rawPeople != null)
-        people = JSON.parse(rawPeople);
-    else
-        people = [];
-    let rawEntities = getFromDatabase("/entities");
-    let entities = null;
-    if(rawEntities != null)
-        entities = JSON.parse(rawEntities);
-    else
-        entities = [];
-    let maxLength = Math.max(products.length, people.length, entities.length);
-    for(let i = 0; i < maxLength; i++) {
-        let tr = document.createElement("tr");
-        if(i < products.length) {
-            let td1 = document.createElement("td");
-            let img = document.createElement("img");
-            img.setAttribute("src", products[i].image);
-            img.setAttribute("alt", products[i].name);
-            img.setAttribute("width", "5%");
-            td1.appendChild(img);
-            let a = document.createElement("a");
-            let productName = document.createTextNode(products[i].name);
-            a.appendChild(productName);
-            a.setAttribute("id", products[i].id);
-            a.addEventListener('click', showProduct);
-            td1.appendChild(a);
-            tr.appendChild(td1);
-        }
-        else {
-            let td1 = document.createElement("td");
-            tr.appendChild(td1);
-        }
-        if(i < people.length) {
-            let td2 = document.createElement("td");
-            let img = document.createElement("img");
-            img.setAttribute("src", people[i].image);
-            img.setAttribute("alt", people[i].name);
-            img.setAttribute("width", "5%");
-            td2.appendChild(img);
-            let a = document.createElement("a");
-            let personName = document.createTextNode(people[i].name);
-            a.appendChild(personName);
-            a.setAttribute("id", people[i].id);
-            a.addEventListener('click', showPerson);
-            td2.appendChild(a);
-            tr.appendChild(td2);
-        }
-        else {
-            let td2 = document.createElement("td");
-            tr.appendChild(td2);
-        }
-        if(i < entities.length) {
-            let td3 = document.createElement("td");
-            
-            let img = document.createElement("img");
-            img.setAttribute("src", entities[i].image);
-            img.setAttribute("alt", entities[i].name);
-            img.setAttribute("width", "5%");
-            td3.appendChild(img);
-            let a = document.createElement("a");
-            let entityName = document.createTextNode(entities[i].name);
-            a.appendChild(entityName);
-            a.setAttribute("id", entities[i].id);
-            a.addEventListener('click', showEntity);
-            td3.appendChild(a);
-            tr.appendChild(td3);
-        }
-        else {
-            let td3 = document.createElement("td");
-            tr.appendChild(td3);
-        }
-        tbody.appendChild(tr);
-    }
-    return tbody;
-}
+
+
+
+
+
+
+
+
+
+
+
 
 function userManagementForm() {
     let section = document.createElement("section");
@@ -681,89 +737,6 @@ function editEntity() {}
 function deleteProduct() {}
 function deletePerson() {}
 function deleteEntity() {}
-
-
-
-
-
-function nosirve() {
-    let variable = "";
-
-    let finalPath = COMMON_PATH + "/products";
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', encodeURI(finalPath), true);
-    xhr.setRequestHeader("Authorization", "Bearer " + access_token);
-    xhr.responseType = "json";
-    xhr.onload = function () {
-        if(xhr.status === 200) {
-            alert("status 200");
-            console.log(("RESPUESTA2: " + JSON.stringify(xhr.response)));
-            variable = JSON.stringify(xhr.response);
-            console.log("VARIABLE: " + variable);
-        }
-        else if(xhr.status === 304){
-            alert("status 304");
-        }
-        else
-            variable = null;
-    }
-    xhr.send();
-
-    alert("Variable = " + variable);
-    console.log("Variable = " + variable);
-}
-
-
-function contenidotabla() {
-    let products;
-    let people;
-    let receivedElements = 0;
-
-    getDB("/products", function (response) {
-        products = response;
-        receivedElements++;
-        obtainedElements();
-    })
-
-    getDB("/persons", function (response) {
-        people = response;
-        receivedElements++;
-        obtainedElements();
-    })
-
-    function obtainedElements() {
-        if(receivedElements === 2) {
-            console.log("Mis products: " + products);
-            console.log("Mis people: " + people);
-        }
-    }
-}
-
-function getDB(relativePath, f) {
-    let finalPath = COMMON_PATH + relativePath;
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', encodeURI(finalPath), true);
-    xhr.setRequestHeader("Authorization", "Bearer " + access_token);
-    xhr.responseType = "json";
-    xhr.onload = function () {
-        if(xhr.status === 200) {
-            alert("status 200");
-            console.log(("RESPUESTA: " + JSON.stringify(xhr.response)));
-            f(JSON.stringify(xhr.response));
-        }
-        else
-            alert("");
-    }
-    xhr.send();
-}
-
-
-
-
-
-
-
-
 
 
 
