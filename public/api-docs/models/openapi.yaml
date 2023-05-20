@@ -125,7 +125,7 @@ paths:
       description: Creates a new user
       operationId: api_users_post
       security:
-        - MiWApiSecurity: [ writer ]
+        - MiWApiSecurity: [ reader, writer ]
       requestBody:
         $ref: '#/components/requestBodies/UserRequestBody'
       responses:

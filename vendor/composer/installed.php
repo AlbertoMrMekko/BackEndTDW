@@ -3,7 +3,7 @@
         'name' => 'tdw/aciencia',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '01df18175d703a000e0927e180f2f0eeac78ba29',
+        'reference' => '3a241fcae9d45307a4361f54d5e63196bdaf009c',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -1070,7 +1070,7 @@
         'tdw/aciencia' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '01df18175d703a000e0927e180f2f0eeac78ba29',
+            'reference' => '3a241fcae9d45307a4361f54d5e63196bdaf009c',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

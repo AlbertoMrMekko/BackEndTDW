@@ -39,9 +39,10 @@ class CreateCommand
      */
     public function __invoke(Request $request, Response $response): Response
     {
+        /*
         if (!$this->checkWriterScope($request)) { // 403
             return Error::createResponse($response, StatusCode::STATUS_FORBIDDEN);
-        }
+        }*/
 
         $req_data = $request->getParsedBody() ?? [];
 
@@ -65,7 +66,7 @@ class CreateCommand
                 $req_data['username'],
                 $req_data['email'],
                 $req_data['password'],
-                $req_data['role'] ?? Role::READER
+                Role::READER
             );
         } catch (Throwable) {    // 400 BAD REQUEST: Unexpected role
             return Error::createResponse($response, StatusCode::STATUS_BAD_REQUEST);
