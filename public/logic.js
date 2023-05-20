@@ -335,9 +335,9 @@ function createProductstbody(url, table) {
         });
 
         if(userRole === "reader")
-            createReadertbody(products, table, showProduct());
+            createReaderProductstbody(products, table);
         else
-            createWritertbody(products, table, showProduct(), editProduct(), deleteProduct(), createProduct());
+            createWriterProductstbody(products, table);
     });
 }
 
@@ -350,9 +350,9 @@ function createPeopletbody(url, table) {
             return new Person(p.id, p.name, null, null, p.imageUrl, null, null, null);
         });
         if(userRole === "reader")
-            createReadertbody(people, table, showPerson());
+            createReaderPeopletbody(people, table);
         else
-            createWritertbody(people, table, showPerson(), editPerson(), deletePerson(), createPerson());
+            createWriterPeopletbody(people, table);
     });
 }
 
@@ -365,29 +365,29 @@ function createEntitiestbody(url, table) {
             return new Entity(e.id, e.name, null, null, e.imageUrl, null, null, null);
         });
         if(userRole === "reader")
-            createReadertbody(entities, table, showEntity());
+            createReaderEntitiestbody(entities, table, showEntity);
         else
-            createWritertbody(entities, table, showEntity(), editEntity(), deleteEntity(), createEntity());
+            createWriterEntitiestbody(entities, table, showEntity, editEntity, deleteEntity, createEntity);
     });
 }
 
-function createReadertbody(elements, table, showf) {
-    for (let i = 0; i < elements.length; i++) {
-        let element = elements[i];
+function createReaderProductstbody(products, table) {
+    for (let i = 0; i < products.length; i++) {
+        let product = products[i];
         let tr = document.createElement("tr");
         let td = document.createElement("td");
 
         // meter en td la info.
         let img = document.createElement("img");
-        img.setAttribute("src", element.image);
-        img.setAttribute("alt", element.name);
+        img.setAttribute("src", product.image);
+        img.setAttribute("alt", product.name);
         img.setAttribute("width", "5%");
         td.appendChild(img);
         let a = document.createElement("a");
-        let productName = document.createTextNode(element.name);
+        let productName = document.createTextNode(product.name);
         a.appendChild(productName);
-        a.setAttribute("id", element.id);
-        a.addEventListener('click', showf);
+        a.setAttribute("id", product.id);
+        a.addEventListener('click', showProduct);
         td.appendChild(a);
 
         tr.appendChild(td);
@@ -395,37 +395,85 @@ function createReadertbody(elements, table, showf) {
     }
 }
 
-function createWritertbody(elements, table, showf, editf, deletef, createf) {
+function createReaderPeopletbody(people, table) {
+    for (let i = 0; i < people.length; i++) {
+        let person = people[i];
+        let tr = document.createElement("tr");
+        let td = document.createElement("td");
+
+        // meter en td la info.
+        let img = document.createElement("img");
+        img.setAttribute("src", person.image);
+        img.setAttribute("alt", person.name);
+        img.setAttribute("width", "5%");
+        td.appendChild(img);
+        let a = document.createElement("a");
+        let personName = document.createTextNode(person.name);
+        a.appendChild(personName);
+        a.setAttribute("id", person.id);
+        a.addEventListener('click', showPerson);
+        td.appendChild(a);
+
+        tr.appendChild(td);
+        table.querySelector("tbody").appendChild(tr);
+    }
+}
+
+function createReaderEntitiestbody(entities, table) {
+    for (let i = 0; i < entities.length; i++) {
+        let entity = entities[i];
+        let tr = document.createElement("tr");
+        let td = document.createElement("td");
+
+        // meter en td la info.
+        let img = document.createElement("img");
+        img.setAttribute("src", entity.image);
+        img.setAttribute("alt", entity.name);
+        img.setAttribute("width", "5%");
+        td.appendChild(img);
+        let a = document.createElement("a");
+        let entityName = document.createTextNode(entity.name);
+        a.appendChild(entityName);
+        a.setAttribute("id", entity.id);
+        a.addEventListener('click', showEntity);
+        td.appendChild(a);
+
+        tr.appendChild(td);
+        table.querySelector("tbody").appendChild(tr);
+    }
+}
+
+function createWriterProductstbody(products, table) {
     let tr;
     let td;
-    for (let i = 0; i < elements.length; i++) {
-        let element = elements[i];
+    for (let i = 0; i < products.length; i++) {
+        let product = products[i];
         tr = document.createElement("tr");
         td = document.createElement("td");
 
         // meter en td la info.
         let img = document.createElement("img");
-        img.setAttribute("src", element.image);
-        img.setAttribute("alt", element.name);
+        img.setAttribute("src", product.image);
+        img.setAttribute("alt", product.name);
         img.setAttribute("width", "5%");
         td.appendChild(img);
         let a = document.createElement("a");
-        let productName = document.createTextNode(element.name);
+        let productName = document.createTextNode(product.name);
         a.appendChild(productName);
-        a.setAttribute("id", element.id);
-        a.addEventListener('click', showf);
+        a.setAttribute("id", product.id);
+        a.addEventListener('click', showProduct);
         td.appendChild(a);
         let editButton = document.createElement("button");
-        editButton.setAttribute("id", element.id);
+        editButton.setAttribute("id", product.id);
         editButton.type = "button";
         editButton.innerText = "Editar";
-        editButton.addEventListener('click', editf);
+        editButton.addEventListener('click', editProduct);
         td.appendChild(editButton);
         let deleteButton = document.createElement("button");
-        deleteButton.setAttribute("id", element.id);
+        deleteButton.setAttribute("id", product.id);
         deleteButton.type = "button";
         deleteButton.innerText = "Borrar";
-        deleteButton.addEventListener('click', deletef);
+        deleteButton.addEventListener('click', deleteProduct);
         td.appendChild(deleteButton);
 
         tr.appendChild(td);
@@ -437,7 +485,103 @@ function createWritertbody(elements, table, showf, editf, deletef, createf) {
     createButton.type = "button";
     createButton.setAttribute("class", "createButton");
     createButton.innerText = "Crear";
-    createButton.addEventListener('click', createf);
+    createButton.addEventListener('click', createProduct);
+    td.appendChild(createButton);
+    tr.appendChild(td);
+    table.querySelector("tbody").appendChild(tr);
+}
+
+function createWriterPeopletbody(people, table) {
+    let tr;
+    let td;
+    for (let i = 0; i < people.length; i++) {
+        let person = people[i];
+        tr = document.createElement("tr");
+        td = document.createElement("td");
+
+        // meter en td la info.
+        let img = document.createElement("img");
+        img.setAttribute("src", person.image);
+        img.setAttribute("alt", person.name);
+        img.setAttribute("width", "5%");
+        td.appendChild(img);
+        let a = document.createElement("a");
+        let personName = document.createTextNode(person.name);
+        a.appendChild(personName);
+        a.setAttribute("id", person.id);
+        a.addEventListener('click', showPerson);
+        td.appendChild(a);
+        let editButton = document.createElement("button");
+        editButton.setAttribute("id", person.id);
+        editButton.type = "button";
+        editButton.innerText = "Editar";
+        editButton.addEventListener('click', editPerson);
+        td.appendChild(editButton);
+        let deleteButton = document.createElement("button");
+        deleteButton.setAttribute("id", person.id);
+        deleteButton.type = "button";
+        deleteButton.innerText = "Borrar";
+        deleteButton.addEventListener('click', deletePerson);
+        td.appendChild(deleteButton);
+
+        tr.appendChild(td);
+        table.querySelector("tbody").appendChild(tr);
+    }
+    tr = document.createElement("tr");
+    td = document.createElement("td");
+    let createButton = document.createElement("button");
+    createButton.type = "button";
+    createButton.setAttribute("class", "createButton");
+    createButton.innerText = "Crear";
+    createButton.addEventListener('click', createPerson);
+    td.appendChild(createButton);
+    tr.appendChild(td);
+    table.querySelector("tbody").appendChild(tr);
+}
+
+function createWriterEntitiestbody(entities, table) {
+    let tr;
+    let td;
+    for (let i = 0; i < entities.length; i++) {
+        let entity = entities[i];
+        tr = document.createElement("tr");
+        td = document.createElement("td");
+
+        // meter en td la info.
+        let img = document.createElement("img");
+        img.setAttribute("src", entity.image);
+        img.setAttribute("alt", entity.name);
+        img.setAttribute("width", "5%");
+        td.appendChild(img);
+        let a = document.createElement("a");
+        let entityName = document.createTextNode(entity.name);
+        a.appendChild(entityName);
+        a.setAttribute("id", entity.id);
+        a.addEventListener('click', showEntity);
+        td.appendChild(a);
+        let editButton = document.createElement("button");
+        editButton.setAttribute("id", entity.id);
+        editButton.type = "button";
+        editButton.innerText = "Editar";
+        editButton.addEventListener('click', editEntity);
+        td.appendChild(editButton);
+        let deleteButton = document.createElement("button");
+        deleteButton.setAttribute("id", entity.id);
+        deleteButton.type = "button";
+        deleteButton.innerText = "Borrar";
+        deleteButton.addEventListener('click', deleteEntity);
+        td.appendChild(deleteButton);
+
+        tr.appendChild(td);
+        table.querySelector("tbody").appendChild(tr);
+    }
+    tr = document.createElement("tr");
+    td = document.createElement("td");
+    let createButton = document.createElement("button");
+    createButton.type = "button";
+    createButton.setAttribute("class", "createButton");
+    createButton.innerText = "Crear";
+    createButton.addEventListener('click', createEntity);
     td.appendChild(createButton);
     tr.appendChild(td);
     table.querySelector("tbody").appendChild(tr);
@@ -445,320 +589,7 @@ function createWritertbody(elements, table, showf, editf, deletef, createf) {
 
 
 
-
-
-/*
-function loadthead() {
-    let thead = document.createElement("thead");
-    let trHead = document.createElement("tr");
-    let tdHead1 = document.createElement("td");
-    let p1 = document.createElement("p");
-    p1.setAttribute("class", "subtitle");
-    let text1 = document.createTextNode("Productos");
-    p1.appendChild(text1);
-    tdHead1.appendChild(p1);
-    trHead.appendChild(tdHead1);
-    let tdHead2 = document.createElement("td");
-    let p2 = document.createElement("p");
-    p2.setAttribute("class", "subtitle");
-    let text2 = document.createTextNode("Personas");
-    p2.appendChild(text2);
-    tdHead2.appendChild(p2);
-    trHead.appendChild(tdHead2);
-    let tdHead3 = document.createElement("td");
-    let p3 = document.createElement("p");
-    p3.setAttribute("class", "subtitle");
-    let text3 = document.createTextNode("Entidades");
-    p3.appendChild(text3);
-    tdHead3.appendChild(p3);
-    trHead.appendChild(tdHead3);
-    thead.appendChild(trHead);
-    return(thead);
-}*/
-
-/*
-function loadtbody(callback) {
-    let tbody = document.createElement("tbody");
-    let products;
-    let people;
-    let entities;
-    let receivedElements = 0;
-    getElementsFromDB("/products", function (response) {
-        let jsonResponse = JSON.parse(response);
-        let arrayProducts = jsonResponse.products;
-        products = arrayProducts.map(function (item) {
-            let p = item.product;
-            return new Product(p.id, p.name, p.birthDate, p.deathDate, p.imageUrl, p.wikiUrl);
-        });
-        receivedElements++;
-        if (receivedElements === 3)
-            obtainedElements();
-    })
-    getElementsFromDB("/persons", function (response) {
-        let jsonResponse = JSON.parse(response);
-        let arrayPeople = jsonResponse.persons;
-        people = arrayPeople.map(function(item) {
-            let p = item.person;
-            return new Person(p.id, p.name, p.birthDate, p.deathDate, p.imageUrl, p.wikiUrl);
-        });
-        receivedElements++;
-        if (receivedElements === 3)
-            obtainedElements();
-    })
-    getElementsFromDB("/entities", function (response) {
-        let jsonResponse = JSON.parse(response);
-        let arrayEntities = jsonResponse.entities;
-        entities = arrayEntities.map(function(item) {
-            let e = item.entity;
-            return new Entity(e.id, e.name, e.birthDate, e.deathDate, e.imageUrl, e.wikiUrl);
-        });
-        receivedElements++;
-        if (receivedElements === 3)
-            obtainedElements();
-    })
-    function obtainedElements(callback) {
-        if(userRole === "reader")
-            tbody = loadReadertbody(products, people, entities);
-        else
-            tbody = loadWritertbody(products, people, entities);
-        callback(tbody);
-    }
-}*/
-
-/*
-function loadReadertbody(products, people, entities) {
-    let tbody = document.createElement("tbody");
-    let maxLength = Math.max(products.length, people.length, entities.length);
-    for(let i = 0; i < maxLength; i++) {
-        let tr = document.createElement("tr");
-        if(i < products.length) {
-            let td1 = document.createElement("td");
-            let img = document.createElement("img");
-            img.setAttribute("src", products[i].image);
-            img.setAttribute("alt", products[i].name);
-            img.setAttribute("width", "5%");
-            td1.appendChild(img);
-            let a = document.createElement("a");
-            let productName = document.createTextNode(products[i].name);
-            a.appendChild(productName);
-            a.setAttribute("id", products[i].id);
-            a.addEventListener('click', showProduct);
-            td1.appendChild(a);
-            tr.appendChild(td1);
-        }
-        else {
-            let td1 = document.createElement("td");
-            tr.appendChild(td1);
-        }/*
-        if(i < people.length) {
-            let td2 = document.createElement("td");
-            let img = document.createElement("img");
-            img.setAttribute("src", people[i].image);
-            img.setAttribute("alt", people[i].name);
-            img.setAttribute("width", "5%");
-            td2.appendChild(img);
-            let a = document.createElement("a");
-            let personName = document.createTextNode(people[i].name);
-            a.appendChild(personName);
-            a.setAttribute("id", people[i].id);
-            a.addEventListener('click', showPerson);
-            td2.appendChild(a);
-            tr.appendChild(td2);
-        }
-        else {
-            let td2 = document.createElement("td");
-            tr.appendChild(td2);
-        }
-        if(i < entities.length) {
-            let td3 = document.createElement("td");
-
-            let img = document.createElement("img");
-            img.setAttribute("src", entities[i].image);
-            img.setAttribute("alt", entities[i].name);
-            img.setAttribute("width", "5%");
-            td3.appendChild(img);
-            let a = document.createElement("a");
-            let entityName = document.createTextNode(entities[i].name);
-            a.appendChild(entityName);
-            a.setAttribute("id", entities[i].id);
-            a.addEventListener('click', showEntity);
-            td3.appendChild(a);
-            tr.appendChild(td3);
-        }
-        else {
-            let td3 = document.createElement("td");
-            tr.appendChild(td3);
-        }
-        tbody.appendChild(tr);
-    }
-    return tbody;
-}*/
-
-
-
-
-
-
-
-/*
-function loadWritertbody() {
-    let tbody = document.createElement("tbody");
-    let rawProducts;
-    rawProducts = getFromDatabase("/products");
-    alert("rawProducts: " + rawProducts);
-    console.log(rawProducts);
-    let products;
-    if(rawProducts != null)
-        products = JSON.parse(rawProducts);
-    else
-        products = [];
-    let rawPeople = getFromDatabase("/persons");
-    let people = null;
-    if(rawPeople != null)
-        people = JSON.parse(rawPeople);
-    else
-        people = [];
-    let rawEntities = getFromDatabase("/entities");
-    let entities = null;
-    if(rawEntities != null)
-        entities = JSON.parse(rawEntities);
-    else
-        entities = [];
-    let maxLength = Math.max(products.length, people.length, entities.length);
-    for(let i = 0; i < maxLength + 1; i++) {
-        let tr = document.createElement("tr");
-        if(i < products.length) {
-            let td1 = document.createElement("td");
-            let img = document.createElement("img");
-            img.setAttribute("src", products[i].image);
-            img.setAttribute("alt", products[i].name);
-            img.setAttribute("width", "5%");
-            td1.appendChild(img);
-            let a = document.createElement("a");
-            let productName = document.createTextNode(products[i].name);
-            a.appendChild(productName);
-            a.setAttribute("id", products[i].id);
-            a.addEventListener('click', showProduct);
-            td1.appendChild(a);
-            let editButton = document.createElement("button");
-            editButton.setAttribute("id", products[i].id);
-            editButton.type = "button";
-            editButton.innerText = "Editar";
-            editButton.addEventListener('click', updateProduct);
-            td1.appendChild(editButton);
-            let deleteButton = document.createElement("button");
-            deleteButton.setAttribute("id", products[i].id);
-            deleteButton.type = "button";
-            deleteButton.innerText = "Borrar";
-            deleteButton.addEventListener('click', deleteProduct);
-            td1.appendChild(deleteButton);
-            tr.appendChild(td1);
-        }
-        else if(i === products.length) {
-            let td1 = document.createElement("td");
-            let createButton = document.createElement("button");
-            createButton.type = "button";
-            createButton.setAttribute("class", "createButton");
-            createButton.innerText = "Crear";
-            createButton.addEventListener('click', createProduct);
-            td1.appendChild(createButton);
-            tr.appendChild(td1);
-        }
-        else {
-            let td1 = document.createElement("td");
-            tr.appendChild(td1);
-        }
-        if(i < people.length) {
-            let td2 = document.createElement("td");
-            let img = document.createElement("img");
-            img.setAttribute("src", people[i].image);
-            img.setAttribute("alt", people[i].name);
-            img.setAttribute("width", "5%");
-            td2.appendChild(img);
-            let a = document.createElement("a");
-            let personName = document.createTextNode(people[i].name);
-            a.appendChild(personName);
-            a.setAttribute("id", people[i].id);
-            a.addEventListener('click', showPerson);
-            td2.appendChild(a);
-            let editButton = document.createElement("button");
-            editButton.setAttribute("id", people[i].id);
-            editButton.type = "button";
-            editButton.innerText = "Editar";
-            editButton.addEventListener('click', updatePerson);
-            td2.appendChild(editButton);
-            let deleteButton = document.createElement("button");
-            deleteButton.setAttribute("id", people[i].id);
-            deleteButton.type = "button";
-            deleteButton.innerText = "Borrar";
-            deleteButton.addEventListener('click', deletePerson);
-            td2.appendChild(deleteButton);
-            tr.appendChild(td2);
-        }
-        else if(i === people.length) {
-            let td2 = document.createElement("td");
-            let createButton = document.createElement("button");
-            createButton.type = "button";
-            createButton.setAttribute("class", "createButton");
-            createButton.innerText = "Crear";
-            createButton.addEventListener('click', createPerson);
-            td2.appendChild(createButton);
-            tr.appendChild(td2);
-        }
-        else {
-            let td2 = document.createElement("td");
-            tr.appendChild(td2);
-        }
-        if(i < entities.length) {
-            let td3 = document.createElement("td");
-            
-            let img = document.createElement("img");
-            img.setAttribute("src", entities[i].image);
-            img.setAttribute("alt", entities[i].name);
-            img.setAttribute("width", "5%");
-            td3.appendChild(img);
-            let a = document.createElement("a");
-            let entityName = document.createTextNode(entities[i].name);
-            a.appendChild(entityName);
-            a.setAttribute("id", entities[i].id);
-            a.addEventListener('click', showEntity);
-            td3.appendChild(a);
-            let editButton = document.createElement("button");
-            editButton.setAttribute("id", entities[i].id);
-            editButton.type = "button";
-            editButton.innerText = "Editar";
-            editButton.addEventListener('click', updateEntity);
-            td3.appendChild(editButton);
-            let deleteButton = document.createElement("button");
-            deleteButton.setAttribute("id", entities[i].id);
-            deleteButton.type = "button";
-            deleteButton.innerText = "Borrar";
-            deleteButton.addEventListener('click', deleteEntity);
-            td3.appendChild(deleteButton);
-            tr.appendChild(td3);
-        }
-        else if(i === entities.length) {
-            let td3 = document.createElement("td");
-            let createButton = document.createElement("button");
-            createButton.type = "button";
-            createButton.setAttribute("class", "createButton");
-            createButton.innerText = "Crear";
-            createButton.addEventListener('click', createEntity);
-            td3.appendChild(createButton);
-            tr.appendChild(td3);
-        }
-        else {
-            let td3 = document.createElement("td");
-            tr.appendChild(td3);
-        }
-        tbody.appendChild(tr);
-    }
-    return tbody;
-}*/
-
-
-
-
+// ----------------------------------------------------------------------------------------
 
 
 
