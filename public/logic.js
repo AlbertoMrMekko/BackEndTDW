@@ -710,11 +710,8 @@ function showProduct(event) {
     getFromDB(`/products/${id}`, function (response) {
         let jsonResponse = JSON.parse(response);
         let product = jsonResponse.product;
-        alert(JSON.stringify(product));
         let myProduct = new Product(product.id, product.name, product.birthDate, product.deathDate, product.imageUrl,
             product.wikiUrl, product.entities, product.persons);
-        alert(myProduct);
-        alert(myProduct.wiki);
         generateElementInfo(myProduct, "product");
     });
 }
@@ -771,9 +768,6 @@ function getFromDB(relativePath, f) {
 }
 
 function generateElementInfo(myElement, type) {
-    alert(myElement);
-    alert(myElement.id);
-    alert(myElement.wiki);
     let main = document.getElementById("main");
     let index = putIndex();
     let username = putUsername();
@@ -785,28 +779,31 @@ function generateElementInfo(myElement, type) {
     info.innerHTML += '<h4><b>' + myElement.death + '</b></h4>';
     info.innerHTML += '<img class="bigImage" src="' + myElement.image + '" alt="' + myElement.name + '" width="10%"/>';
     let related = document.createElement("section");
+    let related1 = document.createElement("div");
+    related1.setAttribute("class", "foot1");
+    let related2 = document.createElement("div");
+    related2.setAttribute("class", "foot2");
     main.appendChild(index);
     main.appendChild(username);
     main.appendChild(wiki);
-    main.appendChild(info)
-    main.appendChild(related);
-
-    let related1;
-    let related2;
-    if(type === "product") {
-        related1 = relatedWithProducts(myElement.id, myElement.relatedEntities, 1);
-        related2 = relatedWithProducts(myElement.id, myElement.relatedPeople, 2);
-    }
-    else if(type === "person") {
-        related1 = relatedWithPeople(myElement.id, myElement.relatedProducts, 1);
-        related2 = relatedWithPeople(myElement.id, myElement.relatedEntities, 2);
-    }
-    else {
-        related1 = relatedWithEntities(myElement.id, myElement.relatedProducts, 1);
-        related2 = relatedWithEntities(myElement.id, myElement.relatedPeople, 2);
-    }
+    main.appendChild(info);
     related.appendChild(related1);
     related.appendChild(related2);
+    main.appendChild(related);
+    alert(related.innerHTML);
+    alert(related1);
+    if(type === "product") {
+        relatedWithProducts(myElement.id, myElement.relatedEntities, 1, related1);
+        relatedWithProducts(myElement.id, myElement.relatedPeople, 2, related2);
+    }
+    else if(type === "person") {
+        relatedWithPeople(myElement.id, myElement.relatedProducts, 1, related1);
+        relatedWithPeople(myElement.id, myElement.relatedEntities, 2, related2);
+    }
+    else {
+        relatedWithEntities(myElement.id, myElement.relatedProducts, 1, related1);
+        relatedWithEntities(myElement.id, myElement.relatedPeople, 2, related2);
+    }
 }
 
 function putIndex() {
@@ -815,12 +812,7 @@ function putIndex() {
     return(section);
 }
 
-function relatedWithProducts(id, elements, pos) {
-    let div = document.createElement("div");
-    if(pos === 1)
-        div.setAttribute("class", "foot1");
-    else
-        div.setAttribute("class", "foot2");
+function relatedWithProducts(id, array, pos, section) {
     let p = document.createElement("p");
     let title;
     if(pos === 1)
@@ -828,13 +820,13 @@ function relatedWithProducts(id, elements, pos) {
     else
         title = document.createTextNode("Personas relacionadas");
     p.appendChild(title);
-    div.appendChild(p);
+    section.querySelector("div").appendChild(p);
     let rel;
     if(pos === 1)
         rel = "entities";
     else
         rel = "persons";
-    if(elements !== null)
+    if(array !== null)
         getFromDB(`/products/${id}/${rel}`, function (response) {
             let jsonResponse = JSON.parse(response);
             let elements;
@@ -842,16 +834,17 @@ function relatedWithProducts(id, elements, pos) {
                 let arrayEntities = jsonResponse.entities;
                 elements = arrayEntities.map(function (item) {
                     let e = item.entity;
-                    return new Entity((e.id, e.name, null, null, e.imageUrl, null, null, null));
+                    return new Entity(e.id, e.name, null, null, e.imageUrl, null, null, null);
                 })
             }
             else {
                 let arrayPeople = jsonResponse.persons;
                 elements = arrayPeople.map(function (item) {
                     let p = item.person;
-                    return new Person((p.id, p.name, null, null, p.imageUrl, null, null, null));
+                    return new Person(p.id, p.name, p.birth, p.death, p.imageUrl, p.wikiUrl, p.products, p.entities);
                 })
             }
+            console.log("elements = " + JSON.stringify(elements));
             for(let i = 0; i < elements.length; i++) {
                 let article = document.createElement("article");
                 let img = document.createElement("img");
@@ -868,9 +861,8 @@ function relatedWithProducts(id, elements, pos) {
                 else
                     a.addEventListener('click', showPerson);
                 article.appendChild(a);
-                div.appendChild(article);
+                section.querySelector("div").appendChild(article);
             }
-            return(div);
         });
 }
 
