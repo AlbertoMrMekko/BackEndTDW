@@ -54,31 +54,6 @@ function clean() {
     main.innerHTML = "";
 }
 
-/*
-function getFromDatabase(relativePath) {
-    let finalPath = COMMON_PATH + relativePath;
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', encodeURI(finalPath), true);
-    xhr.setRequestHeader("Authorization", "Bearer " + access_token);
-    xhr.responseType = "json";
-    xhr.onload = () => {
-        if(xhr.status === 200) {
-            alert("status 200");
-            console.log(xhr.response);
-            console.log("----------");
-            console.log(JSON.stringify(xhr.response));
-            // return(xhr.response);
-            return(JSON.stringify(xhr.response));
-        }
-        else if(xhr.status === 304){
-            alert("status 304");
-        }
-        else
-            return null;
-    }
-    xhr.send();
-}*/
-
 function getElementsFromDB(relativePath, f) {
     let finalPath = COMMON_PATH + relativePath;
     const xhr = new XMLHttpRequest();
@@ -93,6 +68,21 @@ function getElementsFromDB(relativePath, f) {
             let listName = relativePath.substring(1);
             f(`"${listName}":[]`); // comprobar
         }
+    }
+    xhr.send();
+}
+
+function getFromDB(relativePath, f) {
+    let finalPath = COMMON_PATH + relativePath;
+    let xhr = new XMLHttpRequest();
+    xhr.open('GET', encodeURI(finalPath), true);
+    xhr.setRequestHeader("Authorization", "Bearer " + access_token);
+    xhr.responseType = "json";
+    xhr.onload = function () {
+        if(xhr.status === 200)
+            f(JSON.stringify(xhr.response));
+        else
+            alert("status " + xhr.status);
     }
     xhr.send();
 }
@@ -715,11 +705,27 @@ function showProduct(event) {
         generateElementInfo(myProduct, "product");
     });
 }
-function showPerson() {
+function showPerson(event) {
     clean();
+    let id = event.target.id;
+    getFromDB(`/persons/${id}`, function (response) {
+        let jsonResponse = JSON.parse(response);
+        let person = jsonResponse.person;
+        let myPerson = new Person(person.id, person.name, person.birthDate, person.deathDate, person.imageUrl,
+            person.wikiUrl, person.products, person.entities);
+        generateElementInfo(myPerson, "person");
+    });
 }
-function showEntity() {
+function showEntity(event) {
     clean();
+    let id = event.target.id;
+    getFromDB(`/entities/${id}`, function (response) {
+        let jsonResponse = JSON.parse(response);
+        let entity = jsonResponse.entity;
+        let myEntity = new Entity(entity.id, entity.name, entity.birthDate, entity.deathDate, entity.imageUrl,
+            entity.wikiUrl, entity.products, entity.persons);
+        generateElementInfo(myEntity, "entity");
+    });
 }
 function createProduct() {
     clean();
@@ -749,24 +755,6 @@ function deleteEntity() {
     clean();
 }
 
-
-
-
-function getFromDB(relativePath, f) {
-    let finalPath = COMMON_PATH + relativePath;
-    let xhr = new XMLHttpRequest();
-    xhr.open('GET', encodeURI(finalPath), true);
-    xhr.setRequestHeader("Authorization", "Bearer " + access_token);
-    xhr.responseType = "json";
-    xhr.onload = function () {
-        if(xhr.status === 200)
-            f(JSON.stringify(xhr.response));
-        else
-            alert("status " + xhr.status);
-    }
-    xhr.send();
-}
-
 function generateElementInfo(myElement, type) {
     let main = document.getElementById("main");
     let index = putIndex();
@@ -790,19 +778,17 @@ function generateElementInfo(myElement, type) {
     related.appendChild(related1);
     related.appendChild(related2);
     main.appendChild(related);
-    alert(related.innerHTML);
-    alert(related1);
     if(type === "product") {
-        productsRelatedEntities(myElement.id, myElement.relatedEntities, related1);
-        productsRelatedPeople(myElement.id, myElement.relatedPeople, related2);
+        productRelatedEntities(myElement.id, myElement.relatedEntities, related1);
+        productRelatedPeople(myElement.id, myElement.relatedPeople, related2);
     }
     else if(type === "person") {
-        relatedWithPeople(myElement.id, myElement.relatedProducts, 1, related1);
-        relatedWithPeople(myElement.id, myElement.relatedEntities, 2, related2);
+        personRelatedProducts(myElement.id, myElement.relatedProducts, related1);
+        personRelatedEntities(myElement.id, myElement.relatedEntities, related2);
     }
     else {
-        relatedWithEntities(myElement.id, myElement.relatedProducts, 1, related1);
-        relatedWithEntities(myElement.id, myElement.relatedPeople, 2, related2);
+        entityRelatedProducts(myElement.id, myElement.relatedProducts, related1);
+        entityRelatedPeople(myElement.id, myElement.relatedPeople, related2);
     }
 }
 
@@ -812,11 +798,10 @@ function putIndex() {
     return(section);
 }
 
-function productsRelatedEntities(id, array, section) {
+function productRelatedEntities(id, array, section) {
     let p = document.createElement("p");
     let title = document.createTextNode("Entidades relacionadas");
     p.appendChild(title);
-    // section.querySelector("div").appendChild(p);
     section.appendChild(p);
     if(array !== null)
         getFromDB(`/products/${id}/entities`, function (response) {
@@ -845,11 +830,10 @@ function productsRelatedEntities(id, array, section) {
         });
 }
 
-function productsRelatedPeople(id, array, section) {
+function productRelatedPeople(id, array, section) {
     let p = document.createElement("p");
     let title = document.createTextNode("Personas relacionadas");
     p.appendChild(title);
-    // section.querySelector("div").appendChild(p);
     section.appendChild(p);
     if(array !== null)
         getFromDB(`/products/${id}/persons`, function (response) {
@@ -878,116 +862,133 @@ function productsRelatedPeople(id, array, section) {
         });
 }
 
-
-
-
-
-
-
-function relatedWithPeople(person) {
-    let section = document.createElement("section");
-    let div1 = document.createElement("div");
-    div1.setAttribute("class", "foot1");
-    let p1 = document.createElement("p");
-    let title1 = document.createTextNode("Productos relacionados");
-    p1.appendChild(title1);
-    div1.appendChild(p1);
-    if(person.relatedProducts !== null)
-        for(let i = 0; i < person.relatedProducts.length; i++) {
-            let article = document.createElement("article");
-            let img = document.createElement("img");
-            img.setAttribute("src", person.relatedProducts[i].image);
-            img.setAttribute("alt", person.relatedProducts[i].name);
-            img.setAttribute("class", "imageFooter");
-            article.appendChild(img);
-            let a = document.createElement("a");
-            let name = document.createTextNode(person.relatedProducts[i].name);
-            a.appendChild(name);
-            a.setAttribute("id", person.relatedEntities[i].id);
-            a.addEventListener('click', showProduct);
-            article.appendChild(a);
-            div1.appendChild(article);
-        }
-    section.appendChild(div1);
-
-    let div2 = document.createElement("div");
-    div2.setAttribute("class", "foot2");
-    let p2 = document.createElement("p");
-    let title2 = document.createTextNode("Entidades relacionadas");
-    p2.appendChild(title2);
-    div2.appendChild(p2);
-    if(person.relatedEntities !== null)
-        for(let i = 0; i < person.relatedEntities.length; i++) {
-            let article = document.createElement("article");
-            let img = document.createElement("img");
-            img.setAttribute("src", person.relatedEntities[i].image);
-            img.setAttribute("alt", person.relatedEntities[i].name);
-            img.setAttribute("class", "imageFooter");
-            article.appendChild(img);
-            let a = document.createElement("a");
-            let name = document.createTextNode(person.relatedEntities[i].name);
-            a.appendChild(name);
-            a.setAttribute("id", person.relatedEntities[i].id);
-            a.addEventListener('click', showEntity);
-            article.appendChild(a);
-            div2.appendChild(article);
-        }
-    section.appendChild(div2);
-    return(section);
+function personRelatedProducts(id, array, section) {
+    let p = document.createElement("p");
+    let title = document.createTextNode("Productos relacionados");
+    p.appendChild(title);
+    section.appendChild(p);
+    if(array !== null)
+        getFromDB(`/persons/${id}/products`, function (response) {
+            let jsonResponse = JSON.parse(response);
+            let elements;
+            let arrayProducts = jsonResponse.products;
+            elements = arrayProducts.map(function (item) {
+                let p = item.product;
+                return new Product(p.id, p.name, null, null, p.imageUrl, null, null, null);
+            })
+            for(let i = 0; i < elements.length; i++) {
+                let article = document.createElement("article");
+                let img = document.createElement("img");
+                img.setAttribute("src", elements[i].image);
+                img.setAttribute("alt", elements[i].name);
+                img.setAttribute("class", "imageFooter");
+                article.appendChild(img);
+                let a = document.createElement("a");
+                let name = document.createTextNode(elements[i].name);
+                a.appendChild(name);
+                a.setAttribute("id", elements[i].id);
+                a.addEventListener('click', showProduct);
+                article.appendChild(a);
+                section.appendChild(article);
+            }
+        });
 }
 
-function relatedWithEntities(entity) {
-    let section = document.createElement("section");
-    let div1 = document.createElement("div");
-    div1.setAttribute("class", "foot1");
-    let p1 = document.createElement("p");
-    let title1 = document.createTextNode("Productos relacionados");
-    p1.appendChild(title1);
-    div1.appendChild(p1);
-    if(entity.relatedProducts !== null)
-        for(let i = 0; i < entity.relatedProducts.length; i++) {
-            let article = document.createElement("article");
-            let img = document.createElement("img");
-            img.setAttribute("src", entity.relatedProducts[i].image);
-            img.setAttribute("alt", entity.relatedProducts[i].name);
-            img.setAttribute("class", "imageFooter");
-            article.appendChild(img);
-            let a = document.createElement("a");
-            let name = document.createTextNode(entity.relatedProducts[i].name);
-            a.appendChild(name);
-            a.setAttribute("id", entity.relatedProducts[i].id);
-            a.addEventListener('click', showProduct);
-            article.appendChild(a);
-            div1.appendChild(article);
-        }
-    section.appendChild(div1);
-
-    let div2 = document.createElement("div");
-    div2.setAttribute("class", "foot2");
-    let p2 = document.createElement("p");
-    let title2 = document.createTextNode("Personas relacionadas");
-    p2.appendChild(title2);
-    div2.appendChild(p2);
-    if(entity.relatedPeople !== null)
-        for(let i = 0; i < entity.relatedPeople.length; i++) {
-            let article = document.createElement("article");
-            let img = document.createElement("img");
-            img.setAttribute("src", entity.relatedPeople[i].image);
-            img.setAttribute("alt", entity.relatedPeople[i].name);
-            img.setAttribute("class", "imageFooter");
-            article.appendChild(img);
-            let a = document.createElement("a");
-            let name = document.createTextNode(entity.relatedPeople[i].name);
-            a.appendChild(name);
-            a.setAttribute("id", entity.relatedPeople[i].id);
-            a.addEventListener('click', showPerson);
-            article.appendChild(a);
-            div2.appendChild(article);
-        }
-    section.appendChild(div2);
-    return(section);
+function personRelatedEntities(id, array, section) {
+    let p = document.createElement("p");
+    let title = document.createTextNode("Entidades relacionadas");
+    p.appendChild(title);
+    section.appendChild(p);
+    if(array !== null)
+        getFromDB(`/persons/${id}/entities`, function (response) {
+            let jsonResponse = JSON.parse(response);
+            let elements;
+            let arrayEntities = jsonResponse.entities;
+            elements = arrayEntities.map(function (item) {
+                let e = item.entity;
+                return new Entity(e.id, e.name, null, null, e.imageUrl, null, null, null);
+            })
+            for(let i = 0; i < elements.length; i++) {
+                let article = document.createElement("article");
+                let img = document.createElement("img");
+                img.setAttribute("src", elements[i].image);
+                img.setAttribute("alt", elements[i].name);
+                img.setAttribute("class", "imageFooter");
+                article.appendChild(img);
+                let a = document.createElement("a");
+                let name = document.createTextNode(elements[i].name);
+                a.appendChild(name);
+                a.setAttribute("id", elements[i].id);
+                a.addEventListener('click', showEntity);
+                article.appendChild(a);
+                section.appendChild(article);
+            }
+        });
 }
 
+function entityRelatedProducts(id, array, section) {
+    let p = document.createElement("p");
+    let title = document.createTextNode("Productos relacionados");
+    p.appendChild(title);
+    section.appendChild(p);
+    if(array !== null)
+        getFromDB(`/entities/${id}/products`, function (response) {
+            let jsonResponse = JSON.parse(response);
+            let elements;
+            let arrayProducts = jsonResponse.products;
+            elements = arrayProducts.map(function (item) {
+                let p = item.product;
+                return new Product(p.id, p.name, null, null, p.imageUrl, null, null, null);
+            })
+            for(let i = 0; i < elements.length; i++) {
+                let article = document.createElement("article");
+                let img = document.createElement("img");
+                img.setAttribute("src", elements[i].image);
+                img.setAttribute("alt", elements[i].name);
+                img.setAttribute("class", "imageFooter");
+                article.appendChild(img);
+                let a = document.createElement("a");
+                let name = document.createTextNode(elements[i].name);
+                a.appendChild(name);
+                a.setAttribute("id", elements[i].id);
+                a.addEventListener('click', showProduct);
+                article.appendChild(a);
+                section.appendChild(article);
+            }
+        });
+}
+
+function entityRelatedPeople(id, array, section) {
+    let p = document.createElement("p");
+    let title = document.createTextNode("Personas relacionadas");
+    p.appendChild(title);
+    section.appendChild(p);
+    if(array !== null)
+        getFromDB(`/entities/${id}/persons`, function (response) {
+            let jsonResponse = JSON.parse(response);
+            let elements;
+            let arrayPeople = jsonResponse.persons;
+            elements = arrayPeople.map(function (item) {
+                let p = item.person;
+                return new Person(p.id, p.name, null, null, p.imageUrl, null, null, null);
+            })
+            for(let i = 0; i < elements.length; i++) {
+                let article = document.createElement("article");
+                let img = document.createElement("img");
+                img.setAttribute("src", elements[i].image);
+                img.setAttribute("alt", elements[i].name);
+                img.setAttribute("class", "imageFooter");
+                article.appendChild(img);
+                let a = document.createElement("a");
+                let name = document.createTextNode(elements[i].name);
+                a.appendChild(name);
+                a.setAttribute("id", elements[i].id);
+                a.addEventListener('click', showPerson);
+                article.appendChild(a);
+                section.appendChild(article);
+            }
+        });
+}
 
 
 
