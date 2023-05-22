@@ -1068,7 +1068,6 @@ function addProductRelatedEntitiesForm(relatedIds, div) {
     p.innerHTML = 'Entidades relacionadas';
     div.appendChild(p);
     getElementsFromDB(`/entities`, function (response) {
-        div.appendChild(p);
         let jsonResponse = JSON.parse(response);
         let arrayEntities = jsonResponse.entities;
         let entities = arrayEntities.map(function(item) {
