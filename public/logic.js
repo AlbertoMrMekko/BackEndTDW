@@ -577,123 +577,6 @@ function createWriterEntitiestbody(entities, table) {
     table.querySelector("tbody").appendChild(tr);
 }
 
-
-
-// ----------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-function userManagementForm() {
-    let section = document.createElement("section");
-    section.innerHTML = '<form>';
-    section.innerHTML += '<input type="button" name="UserManagement" value="Gestión de Usuarios" onclick="loadUserManagement();"/>';
-    section.innerHTML += '</form>';
-    return(section);
-}
-
-function loadProfile() {
-    clean();
-    let main = document.getElementById("main");
-    let username = putUsername();
-    main.appendChild(username);
-
-    // peticion GET /users
-    let user = getFromDatabase("/users/" + userId);
-
-    alert(user);
-
-    let form = document.createElement("form");
-    form.innerHTML = '<p>Mi perfil</p>';
-    form.innerHTML += '<br>';
-    form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
-    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + user.username + '" readonly/>';
-    form.innerHTML += '<label for = "Password" class = "label">Contraseña</label>';
-    form.innerHTML += '<input id = "Password" class = "input" type = "text" name = "Password" value = "' + user.password + '"/>';
-    form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
-    form.innerHTML += '<input id = "Rol" class = "input" type = "text" name = "Role" value = "' + user.role + '"/>';
-    form.innerHTML += '<label for = "Email" class = "label">Email</label>';
-    form.innerHTML += '<input id = "Email" class = "input" type = "text" name = "Email" value = "' + user.email + '"/>';
-    form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
-    form.innerHTML += '<input id = "Birth" class = "input" type = "text" name = "Birth" value = "' + user.birth + '"/>';
-    form.innerHTML += '<br>';
-    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
-    form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editElement();"/>';
-    main.appendChild(form);
-}
-
-function loadUserManagement() {
-    clean();
-    let main = document.getElementById("main");
-    let username = putUsername();
-    main.appendChild(username);
-    let table = document.createElement("table");
-    let thead = document.createElement("thead");
-    thead.innerHTML = '<p>Usuarios</p>';
-    let tbody = document.createElement("tbody");
-    tbody.innerHTML = "";
-    let users = JSON.parse(getFromDatabase("/users"));
-    for(let i = 0; i < users.length; i++) {
-        tbody.innerHTML += '<p>' + users[i].username + '</p>';
-        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Ver" onclick = "showUser(' + users[i].id + ');"/>';
-        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Editar" onclick = "editUser(' + users[i].id + ');"/>';
-        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Eliminar" onclick = "deleteUser(' + users[i].id + ');"/>';
-    }
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    main.appendChild(table);
-}
-
-function showUser(id) {
-    clean();
-    let u = JSON.parse(getFromDatabase("/users/" + id));
-    let main = document.getElementById("main");
-    let form = document.createElement("form");
-    form.innerHTML = '<label for = "Name" class = "label">Nombre</label>';
-    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + u.username + '" readonly/>';
-    form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
-    form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + u.role + '" readonly/>';
-    form.innerHTML += '<label for = "Email" class = "label">Email</label>';
-    form.innerHTML += '<input id = "Email" class = "input" type = "text" name = "Email" value = "' + u.email + '" readonly/>';
-    form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
-    form.innerHTML += '<input id = "Birth" class = "input" type = "text" name = "Birth" value = "' + user.birth + '" readonly/>';
-    form.innerHTML += '<br>';
-    form.innerHTML += '<input type = "button" name = "Back" value = "Atrás" onclick = "loadUserManagement();"/>';
-    main.appendChild(form);
-}
-
-function editUser(id) { // id = user.id => recargar la info guardada en user.
-    clean();
-    let u = JSON.parse(getFromDatabase("/users/" + id));
-    let main = document.getElementById("main");
-    let form = document.createElement("form");
-    form.innerHTML = '<label for = "Name" class = "label">Nombre</label>';
-    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + u.username + '" readonly/>';
-    form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
-    form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + u.role + '"/>';
-    form.innerHTML += '<br>';
-    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadUserManagement();"/>';
-    form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editUserInfo();"/>';
-    main.appendChild(form);
-}
-
-function editUserInfo() {
-
-}
-
-function deleteUser(id) {
-    JSON.parse(deleteOnDatabase("/users/" + id));
-    loadUserManagement();
-}
-
-
-
-
 function showProduct(event) {
     clean();
     let id = event.target.id;
@@ -726,33 +609,6 @@ function showEntity(event) {
             entity.wikiUrl, entity.products, entity.persons);
         generateElementInfo(myEntity, "entity");
     });
-}
-function createProduct() {
-    clean();
-}
-function createPerson() {
-    clean();
-}
-function createEntity() {
-    clean();
-}
-function editProduct() {
-    clean();
-}
-function editPerson() {
-    clean();
-}
-function editEntity() {
-    clean();
-}
-function deleteProduct() {
-    clean();
-}
-function deletePerson() {
-    clean();
-}
-function deleteEntity() {
-    clean();
 }
 
 function generateElementInfo(myElement, type) {
@@ -992,6 +848,279 @@ function entityRelatedPeople(id, array, section) {
 
 
 
+// ----------------------------------------------------------------------------------------
+
+
+function userManagementForm() {
+    let section = document.createElement("section");
+    section.innerHTML = '<form>';
+    section.innerHTML += '<input type="button" name="UserManagement" value="Gestión de Usuarios" onclick="loadUserManagement();"/>';
+    section.innerHTML += '</form>';
+    return(section);
+}
+
+function loadProfile() {
+    clean();
+    let main = document.getElementById("main");
+    let username = putUsername();
+    main.appendChild(username);
+
+    // peticion GET /users
+    let user = getFromDatabase("/users/" + userId);
+
+    alert(user);
+
+    let form = document.createElement("form");
+    form.innerHTML = '<p>Mi perfil</p>';
+    form.innerHTML += '<br>';
+    form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
+    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + user.username + '" readonly/>';
+    form.innerHTML += '<label for = "Password" class = "label">Contraseña</label>';
+    form.innerHTML += '<input id = "Password" class = "input" type = "text" name = "Password" value = "' + user.password + '"/>';
+    form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
+    form.innerHTML += '<input id = "Rol" class = "input" type = "text" name = "Role" value = "' + user.role + '"/>';
+    form.innerHTML += '<label for = "Email" class = "label">Email</label>';
+    form.innerHTML += '<input id = "Email" class = "input" type = "text" name = "Email" value = "' + user.email + '"/>';
+    form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+    form.innerHTML += '<input id = "Birth" class = "input" type = "text" name = "Birth" value = "' + user.birth + '"/>';
+    form.innerHTML += '<br>';
+    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
+    form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editElement();"/>';
+    main.appendChild(form);
+}
+
+function loadUserManagement() {
+    clean();
+    let main = document.getElementById("main");
+    let username = putUsername();
+    main.appendChild(username);
+    let table = document.createElement("table");
+    let thead = document.createElement("thead");
+    thead.innerHTML = '<p>Usuarios</p>';
+    let tbody = document.createElement("tbody");
+    tbody.innerHTML = "";
+    let users = JSON.parse(getFromDatabase("/users"));
+    for(let i = 0; i < users.length; i++) {
+        tbody.innerHTML += '<p>' + users[i].username + '</p>';
+        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Ver" onclick = "showUser(' + users[i].id + ');"/>';
+        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Editar" onclick = "editUser(' + users[i].id + ');"/>';
+        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Eliminar" onclick = "deleteUser(' + users[i].id + ');"/>';
+    }
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    main.appendChild(table);
+}
+
+function showUser(id) {
+    clean();
+    let u = JSON.parse(getFromDatabase("/users/" + id));
+    let main = document.getElementById("main");
+    let form = document.createElement("form");
+    form.innerHTML = '<label for = "Name" class = "label">Nombre</label>';
+    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + u.username + '" readonly/>';
+    form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
+    form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + u.role + '" readonly/>';
+    form.innerHTML += '<label for = "Email" class = "label">Email</label>';
+    form.innerHTML += '<input id = "Email" class = "input" type = "text" name = "Email" value = "' + u.email + '" readonly/>';
+    form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+    form.innerHTML += '<input id = "Birth" class = "input" type = "text" name = "Birth" value = "' + user.birth + '" readonly/>';
+    form.innerHTML += '<br>';
+    form.innerHTML += '<input type = "button" name = "Back" value = "Atrás" onclick = "loadUserManagement();"/>';
+    main.appendChild(form);
+}
+
+function editUser(id) { // id = user.id => recargar la info guardada en user.
+    clean();
+    let u = JSON.parse(getFromDatabase("/users/" + id));
+    let main = document.getElementById("main");
+    let form = document.createElement("form");
+    form.innerHTML = '<label for = "Name" class = "label">Nombre</label>';
+    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + u.username + '" readonly/>';
+    form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
+    form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + u.role + '"/>';
+    form.innerHTML += '<br>';
+    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadUserManagement();"/>';
+    form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editUserInfo();"/>';
+    main.appendChild(form);
+}
+
+function editUserInfo() {
+
+}
+
+function deleteUser(id) {
+    JSON.parse(deleteOnDatabase("/users/" + id));
+    loadUserManagement();
+}
+
+
+
+
+
+
+
+function createProduct() {
+    clean();
+}
+function createPerson() {
+    clean();
+}
+function createEntity() {
+    clean();
+}
+
+
+
+
+
+
+
+
+
+
+function editProduct(event) {
+    clean();
+    let id = event.target.id;
+    getFromDB(`/products/${id}`, function (response) {
+        let jsonResponse = JSON.parse(response);
+        let product = jsonResponse.product;
+        let myProduct = new Product(product.id, product.name, product.birthDate, product.deathDate, product.imageUrl,
+            product.wikiUrl, product.entities, product.persons);
+        generateEditElementForm(myProduct, "product");
+    });
+}
+function editPerson() {
+    clean();
+}
+function editEntity() {
+    clean();
+}
+function deleteProduct() {
+    clean();
+}
+function deletePerson() {
+    clean();
+}
+function deleteEntity() {
+    clean();
+}
+
+
+
+
+
+
+
+function generateEditElementForm(myElement, type) {
+    let main = document.getElementById("main");
+    let index = putIndex();
+    let username = putUsername();
+    let form = basicEditForm(myElement, type);
+    main.appendChild(index);
+    main.appendChild(username);
+    main.appendChild(form);
+    let div1 = document.createElement("div");
+    let div2 = document.createElement("div");
+    form.appendChild(div1);
+    form.appendChild(div2);
+    if(type === "product") {
+        addProductRelatedEntitiesForm(myElement.relatedEntities, div1);
+        // form.innerHTML += addProductRelatedForm(myElement.people);
+    }
+    else if(type === "entity") {
+        alert();
+        // form.innerHTML += addEntityRelatedForm(myElement.products);
+        // form.innerHTML += addEntityRelatedForm(myElement.people);
+    }
+    else {
+        alert();
+        // form.innerHTML += addPersonRelatedForm(myElement.products);
+        // form.innerHTML += addPersonRelatedForm(myElement.entities);
+    }
+    form.innerHTML += '<br>';
+    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
+    form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editElement();"/>';
+}
+
+function basicEditForm(myElement, type) {
+    let form = document.createElement("form");
+    if(type === "product")
+        form.innerHTML = '<h2>Editar producto</h2>';
+    else if(type === "entity")
+        form.innerHTML = '<h2>Editar entidad</h2>';
+    else
+        form.innerHTML = '<h2>Editar persona</h2>';
+    form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
+    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + myElement.name + '"/>';
+    form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+    form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth" value = "' + myElement.birth + '"/>';
+    form.innerHTML += '<label for = "Death" class = "label">Fecha de defunción</label>';
+    form.innerHTML += '<input id = "Death" class = "input" type = "date" name = "Death" value = "' + myElement.death + '"/>';
+    form.innerHTML += '<label for = "Image" class = "label">Imagen</label>';
+    form.innerHTML += '<input id = "Image" class = "input" type = "text" name = "Image" value = "' + myElement.image + '"/>';
+    form.innerHTML += '<label for = "Wiki" class = "label">Wiki</label>';
+    form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki" value = "' + myElement.wiki + '"/>';
+    return form;
+}
+
+function addProductRelatedEntitiesForm(relatedIds, div) {
+    let p = document.createElement("p");
+    p.innerHTML = 'Entidades relacionadas';
+    div.appendChild(p);
+    getElementsFromDB(`/entities`, function (response) {
+        div.appendChild(p);
+        let jsonResponse = JSON.parse(response);
+        let arrayEntities = jsonResponse.entities;
+        let entities = arrayEntities.map(function(item) {
+            let e = item.entity;
+            return new Entity(e.id, e.name, null, null, null, null, null, null);
+        });
+        if(relatedIds !== null) {
+            let notFound;
+            let entityId;
+            for (let i = 0; i < entities.length; i++) {
+                entityId = entities[i].id;
+                notFound = true;
+                for (let j = 0; j < relatedIds.length && notFound; j++)
+                    if (entityId === relatedIds[j]) {
+                        let article = document.createElement("article");
+                        article.innerHTML = `<input id="${entities[i].id}" type="checkbox" checked="checked"/>${entities[i].name}`;
+                        div.appendChild(article);
+                        let br = document.createElement("br");
+                        div.appendChild(br);
+                        notFound = false;
+                    }
+                if (notFound) {
+                    let article = document.createElement("article");
+                    article.innerHTML = `<input id="${entities[i].id}" type="checkbox"/>${entities[i].name}`;
+                    div.appendChild(article);
+                    let br = document.createElement("br");
+                    div.appendChild(br);
+                }
+            }
+        }
+        else
+            for(let i = 0; i < entities.length; i++) {
+                let article = document.createElement("article");
+                article.innerHTML = `<input id="${entities[i].id}" type="checkbox"/>${entities[i].name}`;
+                div.appendChild(article);
+                let br = document.createElement("br");
+                div.appendChild(br);
+            }
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1010,13 +1139,6 @@ function entityRelatedPeople(id, array, section) {
 
 /*
 function loadLocalStorage() {  // eliminar cuando meta los datos en la BD
-    setLocalStorage("isLogged", false);
-    setLocalStorage("idCount", 1);
-    
-    let products = [];
-    let people = [];
-    let entities = [];
-
     let person = new Person("Tim Berners-Lee", "08/06/1955", "", "https://upload.wikimedia.org/wikipedia/commons/4/4e/Sir_Tim_Berners-Lee_%28cropped%29.jpg", "https://es.wikipedia.org/wiki/Tim_Berners-Lee");
     let entity = new Entity("CERN", "29/09/1954", "", "https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/CERN_logo.svg/1200px-CERN_logo.svg.png", "https://es.wikipedia.org/wiki/Organizaci%C3%B3n_Europea_para_la_Investigaci%C3%B3n_Nuclear", [person]);
     let product = new Product("HTML", "01/01/1980", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/HTML5_logo_black.svg/2048px-HTML5_logo_black.svg.png", "https://es.wikipedia.org/wiki/HTML", [person], [entity]);
@@ -1026,59 +1148,6 @@ function loadLocalStorage() {  // eliminar cuando meta los datos en la BD
     let person3 = new Person("Brendan Eich", "01/01/1961", "", "https://upload.wikimedia.org/wikipedia/commons/d/d1/Brendan_Eich_Mozilla_Foundation_official_photo.jpg", "https://es.wikipedia.org/wiki/Brendan_Eich");
     let entity3 = new Entity("Netscape Communications", "04/04/1994", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Netscape_logo.svg/320px-Netscape_logo.svg.png", "https://es.wikipedia.org/wiki/Netscape_Communications_Corporation", [person3]);
     let product3 = new Product("Javascript", "04/12/1995", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Unofficial_JavaScript_logo_2.svg/1200px-Unofficial_JavaScript_logo_2.svg.png", "https://es.wikipedia.org/wiki/JavaScript", [person3], [entity3]);
-
-    people.push(person);
-    people.push(person2);
-    people.push(person3);
-    entities.push(entity);
-    entities.push(entity2);
-    entities.push(entity3);
-    products.push(product);
-    products.push(product2);
-    products.push(product3);
-
-    setLocalStorage("products", products);
-    setLocalStorage("entities", entities);
-    setLocalStorage("people", people);
-
-    let writerX = new User("x", "x");
-    let writerY = new User("y", "y");
-    let writerZ = new User("z", "z");
-    let users = [writerX, writerY, writerZ];
-    setLocalStorage("users", users);
-}
-*/
-
-/*
-function OLDshowProduct(event) {
-    let id = event.target.id;
-    let products = getFromLocalStorage("products");
-    let product = findElementById(products, id);
-    setLocalStorage("myElement", product);
-    setLocalStorageNoStringify("myElementType", "productType");
-    window.location.href = "elementInfo.html";
-}
-*/
-
-/*
-function showPerson(event) {
-    let id = event.target.id;
-    let people = getFromLocalStorage("people");
-    let person = findElementById(people, id);
-    setLocalStorage("myElement", person);
-    setLocalStorageNoStringify("myElementType", "personType");
-    window.location.href = "elementInfo.html";
-}
-*/
-
-/*
-function showEntity(event) {
-    let id = event.target.id;
-    let entities = getFromLocalStorage("entities");
-    let entity = findElementById(entities, id);
-    setLocalStorage("myElement", entity);
-    setLocalStorageNoStringify("myElementType", "entityType");
-    window.location.href = "elementInfo.html";
 }
 */
 
