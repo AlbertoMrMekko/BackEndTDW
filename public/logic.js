@@ -53,12 +53,30 @@ class User {
     }
 }
 
-// ------------ BD Y CLEAN ----------------
+// ------------ MÉTODOS REUTILIZABLES ----------------
 
 function clean() {
     let main = document.getElementById("main");
     main.innerHTML = "";
 }
+
+function putIndex() {
+    let section = document.createElement("section");
+    section.innerHTML = '<p onclick="loadIndex()">INICIO</p>'
+    return(section);
+}
+
+function putUsername() {
+    let section = document.createElement("section");
+    section.setAttribute("class", "username");
+    let p = document.createElement("p");
+    let text = document.createTextNode("Usuario: " + username);
+    p.appendChild(text);
+    section.appendChild(p);
+    return(section);
+}
+
+// ------------ BD ----------------
 
 function getElementsFromDB(relativePath, f) {
     let finalPath = COMMON_PATH + relativePath;
@@ -278,16 +296,6 @@ function loadIndex() {
     }
 }
 
-function putUsername() {
-    let section = document.createElement("section");
-    section.setAttribute("class", "username");
-    let p = document.createElement("p");
-    let text = document.createTextNode("Usuario: " + username);
-    p.appendChild(text);
-    section.appendChild(p);
-    return(section);
-}
-
 function logoutForm() {
     let section = document.createElement("section");
     section.innerHTML = '<form>';
@@ -300,6 +308,14 @@ function profileForm() {
     let section = document.createElement("section");
     section.innerHTML = '<form>';
     section.innerHTML += '<input type="button" name="Profile" value="Mi perfil" onclick="loadProfile();"/>';
+    section.innerHTML += '</form>';
+    return(section);
+}
+
+function userManagementForm() {
+    let section = document.createElement("section");
+    section.innerHTML = '<form>';
+    section.innerHTML += '<input type="button" name="UserManagement" value="Gestión de Usuarios" onclick="loadUserManagement();"/>';
     section.innerHTML += '</form>';
     return(section);
 }
@@ -663,12 +679,6 @@ function generateElementInfo(myElement, type) {
     }
 }
 
-function putIndex() {
-    let section = document.createElement("section");
-    section.innerHTML = '<p onclick="loadIndex()">INICIO</p>'
-    return(section);
-}
-
 function productRelatedEntities(id, array, section) {
     let p = document.createElement("p");
     let title = document.createTextNode("Entidades relacionadas");
@@ -861,6 +871,79 @@ function entityRelatedPeople(id, array, section) {
         });
 }
 
+// ------------ PERFIL ----------------
+
+function loadProfile() {
+    clean();
+    let main = document.getElementById("main");
+    let index = putIndex();
+    main.appendChild(index);
+    let username = putUsername();
+    main.appendChild(username);
+
+    getElementsFromDB(`/users/${userId}`, function (response) {
+        console.log(response);
+        let jsonResponse = JSON.parse(response);
+        console.log(jsonResponse);
+        let user = jsonResponse.user;
+        console.log(user);
+        let myUser = new User(user.username, null, user.role, user.email, null); // cambiar birth por null cuando lo meta como atrib en la BD
+        let form = document.createElement("form");
+        form.innerHTML = '<p>Mi perfil</p>';
+        form.innerHTML += '<br>';
+        form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
+        form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + user.username + '" readonly/>';
+        form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
+        form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + myUser.role + '" readonly/>';
+        form.innerHTML += '<label for = "Email" class = "label">Email</label>';
+        form.innerHTML += '<input id = "Email" class = "input" type = "text" name = "Email" value = "' + myUser.email + '"/>';
+        // form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+        // form.innerHTML += '<input id = "Birth" class = "input" type = "text" name = "Birth" value = "' + user.birth + '"/>';
+        form.innerHTML += '<br>';
+        form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
+        form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editProfile();"/>';
+        form.innerHTML += '<br><br><br>';
+        form.innerHTML += '<label for = "newPassword" class = "label">Nueva contraseña</label>';
+        form.innerHTML += '<input id = "newPassword" class = "input" type = "password" name = "newPassword"/>';
+        form.innerHTML += '<label for = "newPassword2" class = "label">Repita la nueva contraseña</label>';
+        form.innerHTML += '<input id = "newPassword2" class = "input" type = "password" name = "newPassword2"/>';
+        form.innerHTML += '<input type = "button" name = "Change password" value = "Cambiar contraseña" onclick = "changePassword();"/>';
+        main.appendChild(form);
+    });
+}
+
+function editProfile() {
+    let email = document.getElementById("Email").value;
+    // let birth = document.getElementById("Birth").value;
+    let editedUser = {
+        "username": username,
+        "email": email,
+        "role": userRole
+    }
+    putToDatabase(`/users/${userId}`, editedUser);
+    loadIndex();
+}
+
+function changePassword() {
+    let newPassword = document.getElementById("newPassword").value;
+    let newPassword2 = document.getElementById("newPassword2").value;
+    if(newPassword === newPassword2) {
+        let editedUser = {
+            "username": username,
+            "password": newPassword,
+            "role": userRole
+        }
+        putToDatabase(`/users/${userId}`, editedUser);
+        loadIndex();
+    }
+    else {
+        alert("Error: Las contraseñas no coinciden");
+        loadProfile();
+    }
+}
+
+
+
 // DE AQUÍ PARA ARRIBA FUNCIONA
 
 // ----------------------------------------------------------------------------------------
@@ -890,12 +973,8 @@ function createProduct() {
     });
     generateCreateElementForm(entities, people, "product");
 }
-function createPerson() {
-    clean();
-}
-function createEntity() {
-    clean();
-}
+function createPerson() {}
+function createEntity() {}
 
 function generateCreateElementForm(related1, related2, type) {
     clean();
@@ -940,165 +1019,7 @@ function generateCreateElementForm(related1, related2, type) {
     main.appendChild(form);
 }
 
-
-
-
-
-
-function userManagementForm() {
-    let section = document.createElement("section");
-    section.innerHTML = '<form>';
-    section.innerHTML += '<input type="button" name="UserManagement" value="Gestión de Usuarios" onclick="loadUserManagement();"/>';
-    section.innerHTML += '</form>';
-    return(section);
-}
-
-function loadProfile() {
-    clean();
-    let main = document.getElementById("main");
-    let index = putIndex();
-    main.appendChild(index);
-    let username = putUsername();
-    main.appendChild(username);
-
-    getElementsFromDB(`/users/${userId}`, function (response) {
-        console.log(response);
-        let jsonResponse = JSON.parse(response);
-        console.log(jsonResponse);
-        let user = jsonResponse.user;
-        console.log(user);
-        let myUser = new User(user.username, null, user.role, user.email, null); // cambiar birth por null cuando lo meta como atrib en la BD
-        let form = document.createElement("form");
-        form.innerHTML = '<p>Mi perfil</p>';
-        form.innerHTML += '<br>';
-        form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
-        form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + user.username + '" readonly/>';
-        form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
-        form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + myUser.role + '" readonly/>';
-        form.innerHTML += '<label for = "Email" class = "label">Email</label>';
-        form.innerHTML += '<input id = "Email" class = "input" type = "text" name = "Email" value = "' + myUser.email + '"/>';
-        // form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
-        // form.innerHTML += '<input id = "Birth" class = "input" type = "text" name = "Birth" value = "' + user.birth + '"/>';
-        form.innerHTML += '<br>';
-        form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
-        form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editElement();"/>';
-        form.innerHTML += '<br><br><br>';
-        form.innerHTML += '<label for = "newPassword" class = "label">Nueva contraseña</label>';
-        form.innerHTML += '<input id = "newPassword" class = "input" type = "password" name = "newPassword"/>';
-        form.innerHTML += '<label for = "newPassword2" class = "label">Repita la nueva contraseña</label>';
-        form.innerHTML += '<input id = "newPassword2" class = "input" type = "password" name = "newPassword2"/>';
-        form.innerHTML += '<input type = "button" name = "Change password" value = "Cambiar contraseña" onclick = "changePassword();"/>';
-        main.appendChild(form);
-    });
-}
-
-function editElement() {
-    let email = document.getElementById("Email").value;
-    // let birth = document.getElementById("Birth").value;
-    let editedUser = {
-        "username": username,
-        "email": email,
-        "role": userRole
-    }
-    putToDatabase(`/users/${userId}`, editedUser);
-    loadIndex();
-}
-
-
-function changePassword() {
-    let newPassword = document.getElementById("newPassword").value;
-    let newPassword2 = document.getElementById("newPassword2").value;
-    if(newPassword === newPassword2) {
-        let editedUser = {
-            "username": username,
-            "password": newPassword,
-            "role": userRole
-        }
-        putToDatabase(`/users/${userId}`, editedUser);
-        loadIndex();
-    }
-    else {
-        alert("Error: Las contraseñas no coinciden");
-        loadProfile();
-    }
-}
-
-
-
-
-
-
-
-
-
-function loadUserManagement() {
-    clean();
-    let main = document.getElementById("main");
-    let username = putUsername();
-    main.appendChild(username);
-    let table = document.createElement("table");
-    let thead = document.createElement("thead");
-    thead.innerHTML = '<p>Usuarios</p>';
-    let tbody = document.createElement("tbody");
-    tbody.innerHTML = "";
-    let users = JSON.parse(getFromDatabase("/users"));
-    for(let i = 0; i < users.length; i++) {
-        tbody.innerHTML += '<p>' + users[i].username + '</p>';
-        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Ver" onclick = "showUser(' + users[i].id + ');"/>';
-        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Editar" onclick = "editUser(' + users[i].id + ');"/>';
-        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Eliminar" onclick = "deleteUser(' + users[i].id + ');"/>';
-    }
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    main.appendChild(table);
-}
-
-function showUser(id) {
-    clean();
-    let u = JSON.parse(getFromDatabase("/users/" + id));
-    let main = document.getElementById("main");
-    let form = document.createElement("form");
-    form.innerHTML = '<label for = "Name" class = "label">Nombre</label>';
-    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + u.username + '" readonly/>';
-    form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
-    form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + u.role + '" readonly/>';
-    form.innerHTML += '<label for = "Email" class = "label">Email</label>';
-    form.innerHTML += '<input id = "Email" class = "input" type = "text" name = "Email" value = "' + u.email + '" readonly/>';
-    form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
-    form.innerHTML += '<input id = "Birth" class = "input" type = "text" name = "Birth" value = "' + user.birth + '" readonly/>';
-    form.innerHTML += '<br>';
-    form.innerHTML += '<input type = "button" name = "Back" value = "Atrás" onclick = "loadUserManagement();"/>';
-    main.appendChild(form);
-}
-
-function editUser(id) { // id = user.id => recargar la info guardada en user.
-    clean();
-    let u = JSON.parse(getFromDatabase("/users/" + id));
-    let main = document.getElementById("main");
-    let form = document.createElement("form");
-    form.innerHTML = '<label for = "Name" class = "label">Nombre</label>';
-    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + u.username + '" readonly/>';
-    form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
-    form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + u.role + '"/>';
-    form.innerHTML += '<br>';
-    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadUserManagement();"/>';
-    form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editUserInfo();"/>';
-    main.appendChild(form);
-}
-
-function editUserInfo() {
-
-}
-
-function deleteUser(id) {
-    JSON.parse(deleteOnDatabase("/users/" + id));
-    loadUserManagement();
-}
-
-
-
-
-
+// ------------ EDITAR ELEMENTO ----------------
 
 function editProduct(event) {
     let id = event.target.id;
@@ -1110,23 +1031,8 @@ function editProduct(event) {
         generateEditElementForm(myProduct, "product");
     });
 }
-function editPerson() {
-    clean();
-}
-function editEntity() {
-    clean();
-}
-function deleteProduct() {
-    clean();
-}
-function deletePerson() {
-    clean();
-}
-function deleteEntity() {
-    clean();
-}
-
-
+function editPerson() {}
+function editEntity() {}
 
 function generateEditElementForm(myElement, type) {
     clean();
@@ -1227,6 +1133,77 @@ function addProductRelatedEntitiesForm(relatedIds, div) {
     });
 }
 
+// ------------ ELIMINAR ELEMENTO ----------------
+
+function deleteProduct() {}
+function deletePerson() {}
+function deleteEntity() {}
+
+// ------------ GESTIÓN DE USUARIOS ----------------
+
+function loadUserManagement() {
+    clean();
+    let main = document.getElementById("main");
+    let username = putUsername();
+    main.appendChild(username);
+    let table = document.createElement("table");
+    let thead = document.createElement("thead");
+    thead.innerHTML = '<p>Usuarios</p>';
+    let tbody = document.createElement("tbody");
+    tbody.innerHTML = "";
+    let users = JSON.parse(getFromDatabase("/users"));
+    for(let i = 0; i < users.length; i++) {
+        tbody.innerHTML += '<p>' + users[i].username + '</p>';
+        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Ver" onclick = "showUser(' + users[i].id + ');"/>';
+        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Editar" onclick = "editUser(' + users[i].id + ');"/>';
+        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Eliminar" onclick = "deleteUser(' + users[i].id + ');"/>';
+    }
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    main.appendChild(table);
+}
+
+function showUser(id) {
+    clean();
+    let u = JSON.parse(getFromDatabase("/users/" + id));
+    let main = document.getElementById("main");
+    let form = document.createElement("form");
+    form.innerHTML = '<label for = "Name" class = "label">Nombre</label>';
+    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + u.username + '" readonly/>';
+    form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
+    form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + u.role + '" readonly/>';
+    form.innerHTML += '<label for = "Email" class = "label">Email</label>';
+    form.innerHTML += '<input id = "Email" class = "input" type = "text" name = "Email" value = "' + u.email + '" readonly/>';
+    form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+    form.innerHTML += '<input id = "Birth" class = "input" type = "text" name = "Birth" value = "' + user.birth + '" readonly/>';
+    form.innerHTML += '<br>';
+    form.innerHTML += '<input type = "button" name = "Back" value = "Atrás" onclick = "loadUserManagement();"/>';
+    main.appendChild(form);
+}
+
+function editUser(id) { // id = user.id => recargar la info guardada en user.
+    clean();
+    let u = JSON.parse(getFromDatabase("/users/" + id));
+    let main = document.getElementById("main");
+    let form = document.createElement("form");
+    form.innerHTML = '<label for = "Name" class = "label">Nombre</label>';
+    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + u.username + '" readonly/>';
+    form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
+    form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + u.role + '"/>';
+    form.innerHTML += '<br>';
+    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadUserManagement();"/>';
+    form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editUserInfo();"/>';
+    main.appendChild(form);
+}
+
+function editUserInfo() {
+
+}
+
+function deleteUser(id) {
+    JSON.parse(deleteOnDatabase("/users/" + id));
+    loadUserManagement();
+}
 
 
 
@@ -1237,27 +1214,8 @@ function addProductRelatedEntitiesForm(relatedIds, div) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-function loadLocalStorage() {  // eliminar cuando meta los datos en la BD
+/*   // eliminar cuando meta los datos en la BD
+function loadLocalStorage() {
     let person = new Person("Tim Berners-Lee", "08/06/1955", "", "https://upload.wikimedia.org/wikipedia/commons/4/4e/Sir_Tim_Berners-Lee_%28cropped%29.jpg", "https://es.wikipedia.org/wiki/Tim_Berners-Lee");
     let entity = new Entity("CERN", "29/09/1954", "", "https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/CERN_logo.svg/1200px-CERN_logo.svg.png", "https://es.wikipedia.org/wiki/Organizaci%C3%B3n_Europea_para_la_Investigaci%C3%B3n_Nuclear", [person]);
     let product = new Product("HTML", "01/01/1980", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/HTML5_logo_black.svg/2048px-HTML5_logo_black.svg.png", "https://es.wikipedia.org/wiki/HTML", [person], [entity]);
@@ -1267,30 +1225,6 @@ function loadLocalStorage() {  // eliminar cuando meta los datos en la BD
     let person3 = new Person("Brendan Eich", "01/01/1961", "", "https://upload.wikimedia.org/wikipedia/commons/d/d1/Brendan_Eich_Mozilla_Foundation_official_photo.jpg", "https://es.wikipedia.org/wiki/Brendan_Eich");
     let entity3 = new Entity("Netscape Communications", "04/04/1994", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Netscape_logo.svg/320px-Netscape_logo.svg.png", "https://es.wikipedia.org/wiki/Netscape_Communications_Corporation", [person3]);
     let product3 = new Product("Javascript", "04/12/1995", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Unofficial_JavaScript_logo_2.svg/1200px-Unofficial_JavaScript_logo_2.svg.png", "https://es.wikipedia.org/wiki/JavaScript", [person3], [entity3]);
-}
-*/
-
-/*
-function loadElementInfo() {
-    let myElement = getFromLocalStorage("myElement");
-    let myElementType = getFromLocalStorageNoParse("myElementType");
-    let section = document.getElementById("section");
-    section.innerHTML = '<iframe src="' + myElement.wiki + '" alt="' + myElement.name + '"></iframe>';
-    let aside = document.getElementById("aside");
-    aside.innerHTML = '<h3><b>' + myElement.name + '</b></h3>';
-    aside.innerHTML += '<h4><b>' + myElement.birth + '</b></h4>';
-    if(myElement.death == "")
-        myElement.death = "Vivo";
-    aside.innerHTML += '<h4><b>' + myElement.death + '</b></h4>';
-    aside.innerHTML += '<img class="bigImage" src="' + myElement.image + '" alt="' + myElement.name + '" width="10%"/>';
-    if(myElementType === "productType")
-        loadRelatedWithProducts(myElement);
-    else if(myElementType === "personType")
-        loadRelatedWithPeople(myElement);
-    else if(myElementType === "entityType")
-        loadRelatedWithEntities(myElement);
-    else
-        alert("Error: element desconocido.");
 }
 */
 
@@ -1320,137 +1254,6 @@ function loadRelatedWithProducts(myElement) {
             article.appendChild(a);
             div1.appendChild(article);
         }
-    footer.appendChild(div1);
-
-    let div2 = document.createElement("div");
-    div2.setAttribute("class", "foot2");
-    let p2 = document.createElement("p");
-    let title2 = document.createTextNode("Personas relacionadas");
-    p2.appendChild(title2);
-    div2.appendChild(p2);
-    if(myElement.relatedPeople != undefined)
-        for(let i = 0; i < myElement.relatedPeople.length; i++) {
-            let article = document.createElement("article");
-            let img = document.createElement("img");
-            img.setAttribute("src", myElement.relatedPeople[i].image);
-            img.setAttribute("alt", myElement.relatedPeople[i].name);
-            img.setAttribute("class", "imageFooter");
-            article.appendChild(img);
-            let a = document.createElement("a");
-            let name = document.createTextNode(myElement.relatedPeople[i].name);
-            a.appendChild(name);
-            a.setAttribute("id", myElement.relatedPeople[i].id);
-            a.addEventListener('click', showPerson);
-            article.appendChild(a);
-            div2.appendChild(article);
-        }
-    footer.appendChild(div2);
-}
-*/
-
-/*
-function loadRelatedWithPeople(myElement) {
-    let footer = document.getElementById("footer");
-
-    let div1 = document.createElement("div");
-    div1.setAttribute("class", "foot1");
-    let p1 = document.createElement("p");
-    let title1 = document.createTextNode("Productos relacionados");
-    p1.appendChild(title1);
-    div1.appendChild(p1);
-
-    let myElementId = myElement.id;
-    let products = getFromLocalStorage("products");
-    for(let i = 0; i < products.length; i++) {
-        let iProduct = products[i].relatedPeople;
-        let notFound = true;
-        for(let j = 0; j < iProduct.length && notFound; j++)
-            if(myElementId == iProduct[j].id) {
-                notFound = false;
-                let article = document.createElement("article");
-                let img = document.createElement("img");
-                img.setAttribute("src", products[i].image);
-                img.setAttribute("alt", products[i].name);
-                img.setAttribute("class", "imageFooter");
-                article.appendChild(img);
-                let a = document.createElement("a");
-                let name = document.createTextNode(products[i].name);
-                a.appendChild(name);
-                a.setAttribute("id", products[i].id);
-                a.addEventListener('click', showProduct);
-                article.appendChild(a);
-                div1.appendChild(article);
-            }
-    }
-    footer.appendChild(div1);
-
-    let div2 = document.createElement("div");
-    div2.setAttribute("class", "foot2");
-    let p2 = document.createElement("p");
-    let title2 = document.createTextNode("Entidades relacionadas");
-    p2.appendChild(title2);
-    div2.appendChild(p2);
-
-    let entities = getFromLocalStorage("entities");
-    for(let i = 0; i < entities.length; i++) {
-        let iEntity = entities[i].relatedPeople;
-        let notFound = true;
-        for(let j = 0; j < iEntity.length && notFound; j++)
-            if(myElementId == iEntity[j].id) {
-                notFound = false;
-                let article = document.createElement("article");
-                let img = document.createElement("img");
-                img.setAttribute("src", entities[i].image);
-                img.setAttribute("alt", entities[i].name);
-                img.setAttribute("class", "imageFooter");
-                article.appendChild(img);
-                let a = document.createElement("a");
-                let name = document.createTextNode(entities[i].name);
-                a.appendChild(name);
-                a.setAttribute("id", entities[i].id);
-                a.addEventListener('click', showEntity);
-                article.appendChild(a);
-                div2.appendChild(article);
-            }
-    }
-    footer.appendChild(div2);
-}
-*/
-
-/*
-function loadRelatedWithEntities(myElement) {
-    let footer = document.getElementById("footer");
-
-    let div1 = document.createElement("div");
-    div1.setAttribute("class", "foot1");
-    let p1 = document.createElement("p");
-    let title1 = document.createTextNode("Productos relacionados");
-    p1.appendChild(title1);
-    div1.appendChild(p1);
-
-    let myElementId = myElement.id;
-    let products = getFromLocalStorage("products");
-    for(let i = 0; i < products.length; i++) {
-        let iProduct = products[i].relatedEntities;
-        let notFound = true;
-        for(let j = 0; j < iProduct.length && notFound; j++)
-            if(myElementId == iProduct[j].id) {
-                notFound = false;
-                let article = document.createElement("article");
-                let img = document.createElement("img");
-                img.setAttribute("src", products[i].image);
-                img.setAttribute("alt", products[i].name);
-                img.setAttribute("class", "imageFooter");
-                article.appendChild(img);
-                let a = document.createElement("a");
-                let name = document.createTextNode(products[i].name);
-                a.appendChild(name);
-                a.setAttribute("id", products[i].id);
-                a.addEventListener('click', showProduct);
-                article.appendChild(a);
-                div1.appendChild(article);
-            }
-    }
     footer.appendChild(div1);
 
     let div2 = document.createElement("div");
@@ -1800,294 +1603,9 @@ function editElement() {
 */
 
 /*
-function validateElement(name, birth, image, wiki) {
-    return (name && birth && image && wiki);
-}
-*/
-
-/*
-function OLDdeleteProduct(event) {
-    let id = event.target.id;
-    let products = getFromLocalStorage("products");
-    let notFound = true;
-    for(let i = 0; i < products.length && notFound; i++)
-        if(products[i].id == id) {
-            products.splice(i, 1);
-            notFound = false;
-        }
-    setLocalStorage("products", products);
-    loadIndex();
-}
-*/
-
-/*
-function deletePerson(event) {
-    let id = event.target.id;
-    let people = getFromLocalStorage("people");
-    let notFound = true;
-    for(let i = 0; i < people.length && notFound; i++)
-        if(people[i].id == id) {
-            people.splice(i, 1);
-            notFound = false;
-        }
-    setLocalStorage("people", people);
-    let entities = getFromLocalStorage("entities");
-    for(let i = 0; i < entities.length; i++) {
-        let notFound = true;
-        for(let j = 0; j < entities[i].relatedPeople.length && notFound; j++) {
-            if(id == entities[i].relatedPeople[j].id) {
-                entities[i].relatedPeople.splice(j, 1);
-                notFound = false;
-            }
-        }
-    }
-    setLocalStorage("entities", entities);
-    let products = getFromLocalStorage("products");
-    for(let i = 0; i < products.length; i++) {
-        let notFound = true;
-        for(let j = 0; j < products[i].relatedPeople.length && notFound; j++) {
-            if(id == products[i].relatedPeople[j].id) {
-                products[i].relatedPeople.splice(j, 1);
-                notFound = false;
-            }
-        }
-    }
-    setLocalStorage("products", products);
-    loadIndex();
-}
-*/
-
-/*
-function deleteEntity(event) {
-    let id = event.target.id;
-    let entities = getFromLocalStorage("entities");
-    let notFound = true;
-    for(let i = 0; i < entities.length && notFound; i++)
-        if(entities[i].id == id) {
-            entities.splice(i, 1);
-            notFound = false;
-        }
-    setLocalStorage("entities", entities);
-    let products = getFromLocalStorage("products");
-    for(let i = 0; i < products.length; i++) {
-        let notFound = true;
-        for(let j = 0; j < products[i].relatedEntities.length && notFound; j++) {
-            if(id == products[i].relatedEntities[j].id) {
-                products[i].relatedEntities.splice(j, 1);
-                notFound = false;
-            }
-        }
-    }
-    setLocalStorage("products", products);
-    loadIndex();
-}
-*/
-
-/*
-function getFromLocalStorageNoParse(key) {
-    if(window.localStorage.getItem(key))
-        return (window.localStorage.getItem(key));
-    else
-        alert("Error: " + key + " no está en localStorage.");
-}
-*/
-
-/*
-function getFromLocalStorage(key) {
-    if(window.localStorage.getItem(key))
-        return (JSON.parse(window.localStorage.getItem(key)));
-    else
-        alert("Error: " + key + " no está en localStorage.");
-}
-*/
-
-/*
-function setLocalStorageNoStringify(key, value) {
-    window.localStorage.setItem(key, value);
-}
-*/
-
-/*
-function setLocalStorage(key, value) {
-    window.localStorage.setItem(key, JSON.stringify(value));
-}
-*/
-
-/*
-function findElementById(array, id) {
-    for(let i = 0; i < array.length; i++)
-        if(array[i].id == id)
-            return array[i];
-    alert("Error: el elemento con id " + id + " no está en " + array + ".");
-    return null;
-}
-*/
-
-/*
-function showProduct(event) {
-    let id = event.target.id;
-    // usar método GET de swagger que devuelve un producto a través de un id.
-    let product = getFromDatabase(`/products/${id}`);
-
-    // pasarle a elementInfo.html (loadElementInfo()) product, para que sepa cuál mostrar.
-    // ??
-    
-    window.location.href = "elementInfo.html";
-}
-*/
-
-/*
 function deleteProduct(event) {
     let id = event.target.id;
     deleteOnDatabase(`/products/${id}`)
     loadIndex();
-}
-*/
-
-/*
-function loadProfile() {
-    // let user = ?; // usuario a mostrar.
-    let profile = document.getElementById("profileForm");
-    profile.innerHTML += '<h2>Mi perfil</h2>';
-    profile.innerHTML += '<label for = "Username" class = "input" type = "text" name = "Username">Usuario</label>';
-    profile.innerHTML += '<input class = "input" type = "text" name = "Usermane" value = "' + user.username + '" readonly/>';
-    profile.innerHTML += '<label for = "Password" class = "input" type = "text" name = "Password">Contraseña</label>';
-    profile.innerHTML += '<input class = "input" type = "text" name = "Password" value = "' + user.password + '"/>';
-    profile.innerHTML += '<label for = "Email" class = "input" type = "text" name = "Email">Email</label>';
-    profile.innerHTML += '<input class = "input" type = "text" name = "Email" value = "' + user.email + '"/>';
-    profile.innerHTML += '<label for = "Birth" class = "input" type = "text" name = "Birth">Fecha de nacimiento</label>';
-    profile.innerHTML += '<input class = "input" type = "date" name = "Birth" value = "' + user.birth + '"/>';
-    profile.innerHTML += '<br>';
-    profile.innerHTML += '<input type = "button" name = "Save" value = "Guardar" onclick = "??"/>';
-}
-*/
-
-/*
-function loadUserManagement() {
-    let table = document.getElementById("usersTable");
-    let thead = loadtheadUsers();
-    let tbody = loadtbodyUsers();
-    table.appendChild(thead);
-    table.appendChild(tbody);
-
-    let table2 = document.getElementById("newUsersTable");
-    let thead2 = loadtheadNewUsers();
-    let tbody2 = loadtbodyNewUsers();
-    table2.appendChild(thead2);
-    table2.appendChild(tbody2);
-}
-*/
-
-/*
-function loadtheadUsers() {
-    let thead = document.createElement("thead");
-    let trHead = document.createElement("tr");
-    let tdHead1 = document.createElement("td");
-    let p1 = document.createElement("p");
-    p1.setAttribute("class", "subtitle");
-    let text1 = document.createTextNode("Usuario");
-    p1.appendChild(text1);
-    tdHead1.appendChild(p1);
-    trHead.appendChild(tdHead1);
-    let tdHead2 = document.createElement("td");
-    let p2 = document.createElement("p");
-    p2.setAttribute("class", "subtitle");
-    let text2 = document.createTextNode("Rol");
-    p2.appendChild(text2);
-    tdHead2.appendChild(p2);
-    trHead.appendChild(tdHead2);
-    let tdHead3 = document.createElement("td");
-    let p3 = document.createElement("p");
-    p3.setAttribute("class", "subtitle");
-    let text3 = document.createTextNode("Activo");
-    p3.appendChild(text3);
-    tdHead3.appendChild(p3);
-    trHead.appendChild(tdHead3);
-    thead.appendChild(trHead);
-    return thead;
-}
-*/
-
-/*
-function loadtbodyUsers() {
-    // petición para obtener lista de usuarios. let users = ...
-    // poner la info
-    // añadir botones para Editar y Eliminar/Borrar
-    // return tbody;
-}
-*/
-
-/*
-function loadtheadNewUsers() {
-    let thead = document.createElement("thead");
-    let trHead = document.createElement("tr");
-    let tdHead1 = document.createElement("td");
-    let p1 = document.createElement("p");
-    p1.setAttribute("class", "subtitle");
-    let text1 = document.createTextNode("Usuario");
-    p1.appendChild(text1);
-    tdHead1.appendChild(p1);
-    trHead.appendChild(tdHead1);
-    thead.appendChild(trHead);
-    return thead;
-}
-*/
-
-/*
-function loadtbodyNewUsers() {
-    // petición para obtener lista de nuevos usuarios. let newUsers = ...
-    // poner la info
-    // añadir botones para Permitir acceso como reader y Permitir acceso como writer
-    // return tbody;
-}
-*/
-
-// -------------------------------------------------------
-
-/*
-function showData(authHeader) {
-    showToken(authHeader);
-    showProducts(authHeader);
-    showUsers(authHeader);
-}
-*/
-
-/*
-function showToken(authHeader) {
-    let token = authHeader.split(' ')[1];   // Elimina 'Bearer '
-    let myData = JSON.parse(atob(token.split('.')[1]));
-    console.log("JWT: " + token);
-    $('#mytoken').html(
-        "User: " + JSON.stringify(myData.sub) +
-        " - JWT Scopes: " + JSON.stringify(myData.scopes)
-    );
-}
-*/
-
-/*
-function showProducts(authHeader) {
-    $.ajax({
-        type: "GET",
-        url: '/api/v1/products',
-        headers: {"Authorization": authHeader},
-        // dataType: 'json',
-        success: function (data) {
-            $('#products').html(JSON.stringify(data));
-        }
-    })
-}
-*/
-
-/*
-function showUsers(authHeader) { // hacerlo con ajax
-    $.ajax({
-        type: "GET",
-        url: '/api/v1/users',
-        headers: {"Authorization": authHeader},
-        // dataType: 'json',
-        success: function (data) {
-            $('#users').html(JSON.stringify(data));
-        }
-    })
 }
 */
