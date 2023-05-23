@@ -39,8 +39,8 @@ return function (App $app) {
     $app->get(
         $_ENV['RUTA_API'] . ReadAllQuery::PATH_USERS . $REGEX_USER_ID,
         ReadQuery::class
-    )->setName('tdw_users_read')
-        ->add(JwtMiddleware::class);
+    )->setName('tdw_users_read');
+        // ->add(JwtMiddleware::class);
 
     // GET: Returns status code 204 if username exists
     $app->get(
