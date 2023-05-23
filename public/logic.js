@@ -3,6 +3,9 @@ let username = "";
 let userId = 0;
 let userRole = "";
 let access_token = null;
+
+// ------------ OBJETOS ----------------
+
 class Element {
     constructor(id, name, birth, death, image, wiki) {
         this.id = id;
@@ -48,6 +51,8 @@ class User {
         this.birth = birth;
     }
 }
+
+// ------------ BD Y CLEAN ----------------
 
 function clean() {
     let main = document.getElementById("main");
@@ -133,6 +138,8 @@ function deleteOnDatabase(relativePath) {
     }
     xhr.send();
 }
+
+// ------------ HOME ----------------
 
 function start() {
     clean();
@@ -247,6 +254,8 @@ function signup() {
         start();
     }
 }
+
+// ------------ INDEX ----------------
 
 function loadIndex() {
     clean();
@@ -577,6 +586,8 @@ function createWriterEntitiestbody(entities, table) {
     table.querySelector("tbody").appendChild(tr);
 }
 
+// ------------ VER ELEMENTO ----------------
+
 function showProduct(event) {
     clean();
     let id = event.target.id;
@@ -846,9 +857,88 @@ function entityRelatedPeople(id, array, section) {
         });
 }
 
-
+// DE AQUÍ PARA ARRIBA FUNCIONA
 
 // ----------------------------------------------------------------------------------------
+
+// DE AQUÍ PARA ABAJO PUEDE NO FUNCIONAR
+
+// ------------ CREAR ELEMENTO ----------------
+
+function createProduct() {
+    let entities;
+    let people;
+    getElementsFromDB("/entities", function (response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayEntities = jsonResponse.entities;
+        entities = arrayEntities.map(function(item) {
+            let e = item.entity;
+            return new Entity(e.id, e.name, null, null, null, null, null, null);
+        });
+        getElementsFromDB("/persons", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayPeople = jsonResponse.persons;
+            people = arrayPeople.map(function(item) {
+                let p = item.person;
+                return new Person(p.id, p.name, null, null, null, null, null, null);
+            });
+        });
+    });
+    generateCreateElementForm(entities, people, "product");
+}
+function createPerson() {
+    clean();
+}
+function createEntity() {
+    clean();
+}
+
+function generateCreateElementForm(related1, related2, type) {
+    clean();
+    let main = document.getElementById("main");
+    let index = putIndex();
+    let username = putUsername();
+    let form = document.createElement("form");
+    if(type === "product")
+        form.innerHTML = '<p>Crear producto</p>';
+    else if(type === "entity")
+        form.innerHTML = '<p>Crear entidad</p>';
+    else
+        form.innerHTML = '<p>Crear producto</p>';
+    form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
+    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name"/>';
+    form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+    form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth"/>';
+    form.innerHTML += '<label for = "Death" class = "label">Fecha de defunción</label>';
+    form.innerHTML += '<input id = "Death" class = "input" type = "date" name = "Death"/>';
+    form.innerHTML += '<label for = "Image" class = "label">Imagen</label>';
+    form.innerHTML += '<input id = "Image" class = "input" type = "text" name = "Image"/>';
+    form.innerHTML += '<label for = "Wiki" class = "label">Wiki</label>';
+    form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki"/>';
+    form.innerHTML += '<br>';
+    if(type === "product")
+        form.innerHTML += '<p>Entidades relacionadas</p>';
+    else
+        form.innerHTML += '<p>Productos relacionados</p>';
+    for(let i = 0; i < related1.length; i++)
+        form.innerHTML += `<article><input id="${related1[i].id}" type="checkbox"/>${related1[i].name}</article>`;
+    if(type === "person")
+        form.innerHTML += '<p>Entidades relacionadas</p>';
+    else
+        form.innerHTML += '<p>Personas relacionadas</p>';
+    for(let i = 0; i < related2.length; i++)
+        form.innerHTML += `<article><input id="${related2[i].id}" type="checkbox"/>${related2[i].name}</article>`;
+    form.innerHTML += '<br>';
+    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
+    form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editElement();"/>';
+    main.appendChild(index);
+    main.appendChild(username);
+    main.appendChild(form);
+}
+
+
+
+
 
 
 function userManagementForm() {
@@ -867,8 +957,6 @@ function loadProfile() {
 
     // peticion GET /users
     let user = getFromDatabase("/users/" + userId);
-
-    alert(user);
 
     let form = document.createElement("form");
     form.innerHTML = '<p>Mi perfil</p>';
@@ -958,28 +1046,7 @@ function deleteUser(id) {
 
 
 
-
-function createProduct() {
-    clean();
-}
-function createPerson() {
-    clean();
-}
-function createEntity() {
-    clean();
-}
-
-
-
-
-
-
-
-
-
-
 function editProduct(event) {
-    clean();
     let id = event.target.id;
     getFromDB(`/products/${id}`, function (response) {
         let jsonResponse = JSON.parse(response);
@@ -1007,11 +1074,8 @@ function deleteEntity() {
 
 
 
-
-
-
-
 function generateEditElementForm(myElement, type) {
+    clean();
     let main = document.getElementById("main");
     let index = putIndex();
     let username = putUsername();
@@ -1108,6 +1172,8 @@ function addProductRelatedEntitiesForm(relatedIds, div) {
             }
     });
 }
+
+function editElement() {}
 
 
 
