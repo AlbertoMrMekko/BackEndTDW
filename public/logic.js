@@ -957,6 +957,7 @@ function loadProfile() {
     clean();
     let main = document.getElementById("main");
     let index = putIndex();
+    main.appendChild(index);
     let username = putUsername();
     main.appendChild(username);
 
@@ -1003,30 +1004,24 @@ function editElement() {
     loadIndex();
 }
 
-function getElementsFromDB2(relativePath, f) {
-    let finalPath = COMMON_PATH + relativePath;
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', encodeURI(finalPath), true);
-    xhr.setRequestHeader("Authorization", "Bearer " + access_token);
-    xhr.responseType = "json";
-    xhr.onload = function () {
-        if(xhr.status === 200) {
-            eTag = xhr.getResponseHeader("eTag");
-            alert(eTag);
-            f(JSON.stringify(xhr.response));
+
+function changePassword() {
+    let newPassword = document.getElementById("newPassword").value;
+    let newPassword2 = document.getElementById("newPassword2").value;
+    if(newPassword === newPassword2) {
+        let editedUser = {
+            "username": username,
+            "password": newPassword,
+            "role": userRole
         }
-        else {
-            alert("status " + xhr.status);
-            let listName = relativePath.substring(1);
-            f(`"${listName}":[]`); // comprobar
-        }
+        putToDatabase(`/users/${userId}`, editedUser);
+        loadIndex();
     }
-    xhr.send();
+    else {
+        alert("Error: Las contraseñas no coinciden");
+        loadProfile();
+    }
 }
-
-
-
-function changePassword() {}
 
 
 
