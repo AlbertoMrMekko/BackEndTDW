@@ -3,6 +3,7 @@ let username = "";
 let userId = 0;
 let userRole = "";
 let access_token = null;
+let eTag = "";
 
 // ------------ OBJETOS ----------------
 
@@ -66,8 +67,10 @@ function getElementsFromDB(relativePath, f) {
     xhr.setRequestHeader("Authorization", "Bearer " + access_token);
     xhr.responseType = "json";
     xhr.onload = function () {
-        if(xhr.status === 200)
+        if(xhr.status === 200) {
+            eTag = xhr.getResponseHeader("eTag");
             f(JSON.stringify(xhr.response));
+        }
         else {
             alert("status " + xhr.status);
             let listName = relativePath.substring(1);
@@ -114,6 +117,7 @@ function putToDatabase(relativePath, object) {
     xhr.open('PUT', encodeURI(finalPath), true);
     xhr.setRequestHeader("Authorization", "Bearer " + access_token);
     xhr.setRequestHeader("Content-type", "application/json");
+    xhr.setRequestHeader("If-Match", eTag);
     let jsonObject = JSON.stringify(object);
     xhr.onload = () => {
         if(xhr.status === 209)
@@ -952,30 +956,85 @@ function userManagementForm() {
 function loadProfile() {
     clean();
     let main = document.getElementById("main");
+    let index = putIndex();
     let username = putUsername();
     main.appendChild(username);
 
-    // peticion GET /users
-    let user = getFromDatabase("/users/" + userId);
-
-    let form = document.createElement("form");
-    form.innerHTML = '<p>Mi perfil</p>';
-    form.innerHTML += '<br>';
-    form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
-    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + user.username + '" readonly/>';
-    form.innerHTML += '<label for = "Password" class = "label">Contraseña</label>';
-    form.innerHTML += '<input id = "Password" class = "input" type = "text" name = "Password" value = "' + user.password + '"/>';
-    form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
-    form.innerHTML += '<input id = "Rol" class = "input" type = "text" name = "Role" value = "' + user.role + '"/>';
-    form.innerHTML += '<label for = "Email" class = "label">Email</label>';
-    form.innerHTML += '<input id = "Email" class = "input" type = "text" name = "Email" value = "' + user.email + '"/>';
-    form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
-    form.innerHTML += '<input id = "Birth" class = "input" type = "text" name = "Birth" value = "' + user.birth + '"/>';
-    form.innerHTML += '<br>';
-    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
-    form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editElement();"/>';
-    main.appendChild(form);
+    getElementsFromDB(`/users/${userId}`, function (response) {
+        console.log(response);
+        let jsonResponse = JSON.parse(response);
+        console.log(jsonResponse);
+        let user = jsonResponse.user;
+        console.log(user);
+        let myUser = new User(user.username, null, user.role, user.email, null); // cambiar birth por null cuando lo meta como atrib en la BD
+        let form = document.createElement("form");
+        form.innerHTML = '<p>Mi perfil</p>';
+        form.innerHTML += '<br>';
+        form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
+        form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + user.username + '" readonly/>';
+        form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
+        form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + myUser.role + '" readonly/>';
+        form.innerHTML += '<label for = "Email" class = "label">Email</label>';
+        form.innerHTML += '<input id = "Email" class = "input" type = "text" name = "Email" value = "' + myUser.email + '"/>';
+        // form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+        // form.innerHTML += '<input id = "Birth" class = "input" type = "text" name = "Birth" value = "' + user.birth + '"/>';
+        form.innerHTML += '<br>';
+        form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
+        form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editElement();"/>';
+        form.innerHTML += '<br><br><br>';
+        form.innerHTML += '<label for = "newPassword" class = "label">Nueva contraseña</label>';
+        form.innerHTML += '<input id = "newPassword" class = "input" type = "password" name = "newPassword"/>';
+        form.innerHTML += '<label for = "newPassword2" class = "label">Repita la nueva contraseña</label>';
+        form.innerHTML += '<input id = "newPassword2" class = "input" type = "password" name = "newPassword2"/>';
+        form.innerHTML += '<input type = "button" name = "Change password" value = "Cambiar contraseña" onclick = "changePassword();"/>';
+        main.appendChild(form);
+    });
 }
+
+function editElement() {
+    let email = document.getElementById("Email").value;
+    // let birth = document.getElementById("Birth").value;
+    let editedUser = {
+        "username": username,
+        "email": email,
+        "role": userRole
+    }
+    putToDatabase(`/users/${userId}`, editedUser);
+    loadIndex();
+}
+
+function getElementsFromDB2(relativePath, f) {
+    let finalPath = COMMON_PATH + relativePath;
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', encodeURI(finalPath), true);
+    xhr.setRequestHeader("Authorization", "Bearer " + access_token);
+    xhr.responseType = "json";
+    xhr.onload = function () {
+        if(xhr.status === 200) {
+            eTag = xhr.getResponseHeader("eTag");
+            alert(eTag);
+            f(JSON.stringify(xhr.response));
+        }
+        else {
+            alert("status " + xhr.status);
+            let listName = relativePath.substring(1);
+            f(`"${listName}":[]`); // comprobar
+        }
+    }
+    xhr.send();
+}
+
+
+
+function changePassword() {}
+
+
+
+
+
+
+
+
 
 function loadUserManagement() {
     clean();
@@ -1173,7 +1232,7 @@ function addProductRelatedEntitiesForm(relatedIds, div) {
     });
 }
 
-function editElement() {}
+
 
 
 
@@ -1422,66 +1481,6 @@ function loadRelatedWithEntities(myElement) {
             div2.appendChild(article);
         }
     footer.appendChild(div2);
-}
-*/
-
-/*
-function createProduct() {
-    setLocalStorageNoStringify("myElementType", "productType");
-    setLocalStorageNoStringify("action", "create");
-    window.location.href = "createOrUpdateElement.html";
-}
-*/
-
-/*
-function createPerson() {
-    setLocalStorageNoStringify("myElementType", "personType");
-    setLocalStorageNoStringify("action", "create");
-    window.location.href = "createOrUpdateElement.html";
-}
-*/
-
-/*
-function createEntity() {
-    setLocalStorageNoStringify("myElementType", "entityType");
-    setLocalStorageNoStringify("action", "create");
-    window.location.href = "createOrUpdateElement.html";
-}
-*/
-
-/*
-function updateProduct(event) {
-    let id = event.target.id;
-    let products = getFromLocalStorage("products");
-    let product = findElementById(products, id);
-    setLocalStorage("myElement", product);
-    setLocalStorageNoStringify("myElementType", "productType");
-    setLocalStorageNoStringify("action", "update");
-    window.location.href = "createOrUpdateElement.html";
-}
-*/
-
-/*
-function updatePerson(event) {
-    let id = event.target.id;
-    let people = getFromLocalStorage("people");
-    let person = findElementById(people, id);
-    setLocalStorage("myElement", person);
-    setLocalStorageNoStringify("myElementType", "personType");
-    setLocalStorageNoStringify("action", "update");
-    window.location.href = "createOrUpdateElement.html";
-}
-*/
-
-/*
-function updateEntity(event) {
-    let id = event.target.id;
-    let entities = getFromLocalStorage("entities");
-    let entity = findElementById(entities, id);
-    setLocalStorage("myElement", entity);
-    setLocalStorageNoStringify("myElementType", "entityType");
-    setLocalStorageNoStringify("action", "update");
-    window.location.href = "createOrUpdateElement.html";
 }
 */
 
