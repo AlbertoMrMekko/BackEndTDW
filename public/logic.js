@@ -43,7 +43,8 @@ class Person extends Element {
 }
 
 class User {
-    constructor(username, password, role, email, birth) {
+    constructor(id, username, password, role, email, birth) {
+        this.id = id;
         this.username = username;
         this.password = password;
         this.role = role;
@@ -882,12 +883,9 @@ function loadProfile() {
     main.appendChild(username);
 
     getElementsFromDB(`/users/${userId}`, function (response) {
-        console.log(response);
         let jsonResponse = JSON.parse(response);
-        console.log(jsonResponse);
         let user = jsonResponse.user;
-        console.log(user);
-        let myUser = new User(user.username, null, user.role, user.email, null); // cambiar birth por null cuando lo meta como atrib en la BD
+        let myUser = new User(null, user.username, null, user.role, user.email, null); // cambiar birth por null cuando lo meta como atrib en la BD
         let form = document.createElement("form");
         form.innerHTML = '<p>Mi perfil</p>';
         form.innerHTML += '<br>';
@@ -1142,28 +1140,47 @@ function deleteEntity() {}
 // ------------ GESTIÓN DE USUARIOS ----------------
 
 function loadUserManagement() {
-    clean();
-    let main = document.getElementById("main");
-    let username = putUsername();
-    main.appendChild(username);
-    let table = document.createElement("table");
-    let thead = document.createElement("thead");
-    thead.innerHTML = '<p>Usuarios</p>';
-    let tbody = document.createElement("tbody");
-    tbody.innerHTML = "";
-    let users = JSON.parse(getFromDatabase("/users"));
-    for(let i = 0; i < users.length; i++) {
-        tbody.innerHTML += '<p>' + users[i].username + '</p>';
-        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Ver" onclick = "showUser(' + users[i].id + ');"/>';
-        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Editar" onclick = "editUser(' + users[i].id + ');"/>';
-        tbody.innerHTML += '<input id = "' + i + '" type = "button" value = "Eliminar" onclick = "deleteUser(' + users[i].id + ');"/>';
-    }
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    main.appendChild(table);
+    getElementsFromDB("/users", function (response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayUsers = jsonResponse.users;
+        let users = arrayUsers.map(function(item) {
+            let u = item.user;
+            return new User(u.id, u.username, null, u.role, null, null);
+        });
+        clean();
+        let main = document.getElementById("main");
+        let index = putIndex();
+        main.appendChild(index);
+        let username = putUsername();
+        main.appendChild(username);
+        let table = document.createElement("table");
+        let thead = document.createElement("thead");
+        thead.innerHTML = '<p>Usuarios</p>';
+        let tbody = document.createElement("tbody");
+        tbody.innerHTML = "";
+        for(let i = 0; i < users.length; i++) {
+            let id = users[i].id;
+            if(id !== userId) {
+                tbody.innerHTML += `<p>${users[i].username}</p>`;
+                tbody.innerHTML += `<input id = "${id}" type = "button" value = "Ver" onclick = "showUser();"/>`;
+                if(users[i].role === "READER")
+                    tbody.innerHTML += '<input type = "button" value = "Cambiar a rol writer" onclick = "editUser(' + id + ');"/>';
+                else
+                    tbody.innerHTML += '<input type = "button" value = "Cambiar a rol reader" onclick = "editUser(' + id + ');"/>';
+                tbody.innerHTML += `<input id = "${id}" type = "button" value = "Eliminar" onclick = "deleteUser();"/>`;
+            }
+            else
+                tbody.innerHTML += `<p>${users[i].username} (Tú)</p>`;
+        }
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        main.appendChild(table);
+    });
 }
 
-function showUser(id) {
+
+
+function showUser() {
     clean();
     let u = JSON.parse(getFromDatabase("/users/" + id));
     let main = document.getElementById("main");
@@ -1180,27 +1197,27 @@ function showUser(id) {
     form.innerHTML += '<input type = "button" name = "Back" value = "Atrás" onclick = "loadUserManagement();"/>';
     main.appendChild(form);
 }
-
-function editUser(id) { // id = user.id => recargar la info guardada en user.
-    clean();
-    let u = JSON.parse(getFromDatabase("/users/" + id));
-    let main = document.getElementById("main");
-    let form = document.createElement("form");
-    form.innerHTML = '<label for = "Name" class = "label">Nombre</label>';
-    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + u.username + '" readonly/>';
-    form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
-    form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + u.role + '"/>';
-    form.innerHTML += '<br>';
-    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadUserManagement();"/>';
-    form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editUserInfo();"/>';
-    main.appendChild(form);
+// function editUser(event, id, newRole) {
+function editUser(id) {
+    getElementsFromDB(`/users/${id}`, function (response) {
+        let jsonResponse = JSON.parse(response);
+        let user = jsonResponse.user;
+        let username = user.username;
+        let newRole;
+        if(user.role === "READER")
+            newRole = "writer";
+        else
+            newRole = "reader";
+        let editedUser = {
+            "username": username,
+            "role": newRole
+        }
+        putToDatabase(`/users/${id}`, editedUser);
+        loadIndex();
+    })
 }
 
-function editUserInfo() {
-
-}
-
-function deleteUser(id) {
+function deleteUser() {
     JSON.parse(deleteOnDatabase("/users/" + id));
     loadUserManagement();
 }
