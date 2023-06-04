@@ -891,15 +891,15 @@ function newEntity() {
             else {
                 let checked1 = [];
                 for(let i = 0; i < products.length; i++) {
-                    let iProduct = document.getElementById("r1_" + products[i].id);
+                    let iProduct = document.getElementById("r1_" + products[i]);
                     if(iProduct.checked)
-                        checked1.push(products[i].id);
+                        checked1.push(products[i]);
                 }
                 let checked2 = [];
                 for(let i = 0; i < people.length; i++) {
-                    let iPerson = document.getElementById("r2_" + people[i].id);
+                    let iPerson = document.getElementById("r2_" + people[i]);
                     if(iPerson.checked)
-                        checked2.push(people[i].id);
+                        checked2.push(people[i]);
                 }
                 let basicEntity = {
                     "name": nameForm,
