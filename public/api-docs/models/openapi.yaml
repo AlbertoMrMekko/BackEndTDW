@@ -1420,7 +1420,7 @@ components:
               email: User_email@example.com
               password: User_password
               role: reader
-              birth: 01-01-2000
+              birth: 2000-01-01
     LoginRequestBody:
       description: Registered **username** and **password**
       required: true
