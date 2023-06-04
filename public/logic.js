@@ -114,7 +114,7 @@ function getFromDB(relativePath, f) {
     xhr.send();
 }
 
-function postToDatabase(relativePath, object) {
+function postToDatabase(relativePath, object, f) {
     let finalPath = COMMON_PATH + relativePath;
     const xhr = new XMLHttpRequest();
     xhr.open('POST', encodeURI(finalPath), true);
@@ -122,10 +122,14 @@ function postToDatabase(relativePath, object) {
     xhr.setRequestHeader("Content-type", "application/json");
     let jsonObject = JSON.stringify(object);
     xhr.onload = () => {
-        if(xhr.status === 201)
+        if(xhr.status === 201){
             alert("Operación realizada con éxito");
-        else
+            f(xhr.response);
+        }
+        else {
             alert("Error. Response status = " + xhr.status);
+            f(null);
+        }
     }
     xhr.send(jsonObject);
 }
@@ -138,12 +142,6 @@ function putToDatabase(relativePath, object) {
     xhr.setRequestHeader("Content-type", "application/json");
     xhr.setRequestHeader("If-Match", eTag);
     let jsonObject = JSON.stringify(object);
-    xhr.onload = () => {
-        if(xhr.status === 209)
-            alert("Operación realizada con éxito");
-        else
-            alert("Error. Response status = " + xhr.status);
-    }
     xhr.send(jsonObject);
 }
 
@@ -607,6 +605,333 @@ function createWriterEntitiestbody(entities, table) {
     table.querySelector("tbody").appendChild(tr);
 }
 
+// ------------ CREAR ELEMENTO ----------------
+
+function createProduct() {
+    let entities;
+    let people;
+    getElementsFromDB("/entities", function (response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayEntities = jsonResponse.entities;
+        entities = arrayEntities.map(function(item) {
+            let e = item.entity;
+            return new Entity(e.id, e.name, null, null, null, null, null, null);
+        });
+        getElementsFromDB("/persons", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayPeople = jsonResponse.persons;
+            people = arrayPeople.map(function(item) {
+                let p = item.person;
+                return new Person(p.id, p.name, null, null, null, null, null, null);
+            });
+            generateCreateElementForm(entities, people, "product");
+        });
+    });
+}
+function createPerson() {
+    let products;
+    let entities;
+    getElementsFromDB("/products", function (response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayProducts = jsonResponse.products;
+        products = arrayProducts.map(function(item) {
+            let p = item.product;
+            return new Product(p.id, p.name, null, null, null, null, null, null);
+        });
+        getElementsFromDB("/entities", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayEntities = jsonResponse.entities;
+            entities = arrayEntities.map(function(item) {
+                let e = item.entity;
+                return new Entity(e.id, e.name, null, null, null, null, null, null);
+            });
+            generateCreateElementForm(products, entities, "person");
+        });
+    });
+}
+function createEntity() {
+    let products;
+    let people;
+    getElementsFromDB("/products", function (response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayProducts = jsonResponse.products;
+        products = arrayProducts.map(function(item) {
+            let p = item.product;
+            return new Product(p.id, p.name, null, null, null, null, null, null);
+        });
+        getElementsFromDB("/persons", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayPeople = jsonResponse.persons;
+            people = arrayPeople.map(function(item) {
+                let p = item.person;
+                return new Person(p.id, p.name, null, null, null, null, null, null);
+            });
+            generateCreateElementForm(products, people, "entity");
+        });
+    });
+}
+
+function generateCreateElementForm(related1, related2, type) {
+    clean();
+    let main = document.getElementById("main");
+    let index = putIndex();
+    let username = putUsername();
+    let form = document.createElement("form");
+    if(type === "product")
+        form.innerHTML = '<p>Crear producto</p>';
+    else if(type === "entity")
+        form.innerHTML = '<p>Crear entidad</p>';
+    else
+        form.innerHTML = '<p>Crear producto</p>';
+    form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
+    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name"/>';
+    form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+    form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth"/>';
+    form.innerHTML += '<label for = "Death" class = "label">Fecha de defunción</label>';
+    form.innerHTML += '<input id = "Death" class = "input" type = "date" name = "Death"/>';
+    form.innerHTML += '<label for = "Image" class = "label">Imagen</label>';
+    form.innerHTML += '<input id = "Image" class = "input" type = "text" name = "Image"/>';
+    form.innerHTML += '<label for = "Wiki" class = "label">Wiki</label>';
+    form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki"/>';
+    form.innerHTML += '<br>';
+    if(type === "product")
+        form.innerHTML += '<p>Entidades relacionadas</p>';
+    else
+        form.innerHTML += '<p>Productos relacionados</p>';
+    for(let i = 0; i < related1.length; i++)
+        form.innerHTML += `<article><input id="r1_${related1[i].id}" type="checkbox"/>${related1[i].name}</article>`;
+    if(type === "person")
+        form.innerHTML += '<p>Entidades relacionadas</p>';
+    else
+        form.innerHTML += '<p>Personas relacionadas</p>';
+    for(let i = 0; i < related2.length; i++)
+        form.innerHTML += `<article><input id="r2_${related2[i].id}" type="checkbox"/>${related2[i].name}</article>`;
+    form.innerHTML += '<br>';
+    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
+    if(type === "product")
+        form.innerHTML += `<input type = "button" name = "Submit" value = "Guardar" onclick = "newProduct();"/>`;
+    else if(type === "person")
+        form.innerHTML += `<input type = "button" name = "Submit" value = "Guardar" onclick = "newPerson();"/>`;
+    else
+        form.innerHTML += `<input type = "button" name = "Submit" value = "Guardar" onclick = "newEntity();"/>`;
+    main.appendChild(index);
+    main.appendChild(username);
+    main.appendChild(form);
+}
+
+function newProduct() {
+    let entities;
+    let people;
+    getElementsFromDB("/entities", function (response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayEntities = jsonResponse.entities;
+        entities = arrayEntities.map(function(item) {
+            let e = item.entity;
+            return e.id;
+        });
+        getElementsFromDB("/persons", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayPeople = jsonResponse.persons;
+            people = arrayPeople.map(function(item) {
+                let p = item.person;
+                return p.id;
+            });
+
+            let nameForm = document.getElementById("Name").value;
+            let birthForm = document.getElementById("Birth").value;
+            let deathForm = document.getElementById("Death").value;
+            let imageForm = document.getElementById("Image").value;
+            let wikiForm = document.getElementById("Wiki").value;
+            if(nameForm === "") {
+                alert("Error: el campo Nombre es obligatorio");
+                createProduct();
+            }
+            else {
+                let checked1 = [];
+                for(let i = 0; i < entities.length; i++) {
+                    let iEntity = document.getElementById("r1_" + entities[i]);
+                    if(iEntity.checked)
+                        checked1.push(entities[i]);
+                }
+                let checked2 = [];
+                for(let i = 0; i < people.length; i++) {
+                    let iPerson = document.getElementById("r2_" + people[i]);
+                    if(iPerson.checked)
+                        checked2.push(people[i]);
+                }
+                let basicProduct = {
+                    "name": nameForm,
+                    "birthDate": birthForm,
+                    "deathDate": deathForm,
+                    "imageUrl": imageForm,
+                    "wikiUrl": wikiForm
+                }
+                postToDatabase("/products", basicProduct, function (response) {
+                    let product = JSON.parse(response).product;
+                    let productId = product.id;
+                    for(let i = 0; i < checked1.length; i++) {
+                        let request = {
+                            "productId": productId,
+                            "entityId": checked1[i]
+                        }
+                        putToDatabase(`/products/${productId}/entities/add/${checked1[i]}`, request);
+                    }
+                    for(let i = 0; i < checked2.length; i++) {
+                        let request = {
+                            "productId": productId,
+                            "personId": checked2[i]
+                        }
+                        putToDatabase(`/products/${productId}/persons/add/${checked2[i]}`, request);
+                    }
+                    loadIndex();
+                });
+            }
+        });
+    });
+}
+
+function newPerson() {
+    let products;
+    let entities;
+    getElementsFromDB("/products", function (response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayProducts = jsonResponse.products;
+        products = arrayProducts.map(function(item) {
+            let p = item.product;
+            return p.id;
+        });
+        getElementsFromDB("/entities", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayEntities = jsonResponse.entities;
+            entities = arrayEntities.map(function(item) {
+                let e = item.entity;
+                return e.id;
+            });
+
+            let nameForm = document.getElementById("Name").value;
+            let birthForm = document.getElementById("Birth").value;
+            let deathForm = document.getElementById("Death").value;
+            let imageForm = document.getElementById("Image").value;
+            let wikiForm = document.getElementById("Wiki").value;
+            if(nameForm === "") {
+                alert("Error: el campo Nombre es obligatorio");
+                createPerson();
+            }
+            else {
+                let checked1 = [];
+                for(let i = 0; i < products.length; i++) {
+                    let iProduct = document.getElementById("r1_" + products[i]);
+                    if(iProduct.checked)
+                        checked1.push(products[i]);
+                }
+                let checked2 = [];
+                for(let i = 0; i < entities.length; i++) {
+                    let iEntity = document.getElementById("r2_" + entities[i]);
+                    if(iEntity.checked)
+                        checked2.push(entities[i]);
+                }
+                let basicPerson = {
+                    "name": nameForm,
+                    "birthDate": birthForm,
+                    "deathDate": deathForm,
+                    "imageUrl": imageForm,
+                    "wikiUrl": wikiForm
+                }
+                postToDatabase("/persons", basicPerson, function (response) {
+                    let person = JSON.parse(response).person;
+                    let personId = person.id;
+                    for(let i = 0; i < checked1.length; i++) {
+                        let request = {
+                            "personId": personId,
+                            "productId": checked1[i]
+                        }
+                        putToDatabase(`/persons/${personId}/products/add/${checked1[i]}`, request);
+                    }
+                    for(let i = 0; i < checked2.length; i++) {
+                        let request = {
+                            "personId": personId,
+                            "entityId": checked2[i]
+                        }
+                        putToDatabase(`/persons/${personId}/entities/add/${checked2[i]}`, request);
+                    }
+                    loadIndex();
+                });
+            }
+        });
+    });
+}
+
+function newEntity() {
+    let products;
+    let people;
+    getElementsFromDB("/products", function (response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayProducts = jsonResponse.products;
+        products = arrayProducts.map(function(item) {
+            let p = item.product;
+            return p.id;
+        });
+        getElementsFromDB("/persons", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayPeople = jsonResponse.persons;
+            people = arrayPeople.map(function(item) {
+                let p = item.person;
+                return p.id;
+            });
+
+            let nameForm = document.getElementById("Name").value;
+            let birthForm = document.getElementById("Birth").value;
+            let deathForm = document.getElementById("Death").value;
+            let imageForm = document.getElementById("Image").value;
+            let wikiForm = document.getElementById("Wiki").value;
+            if(nameForm === "") {
+                alert("Error: el campo Nombre es obligatorio");
+                createPerson();
+            }
+            else {
+                let checked1 = [];
+                for(let i = 0; i < products.length; i++) {
+                    let iProduct = document.getElementById("r1_" + products[i].id);
+                    if(iProduct.checked)
+                        checked1.push(products[i].id);
+                }
+                let checked2 = [];
+                for(let i = 0; i < people.length; i++) {
+                    let iPerson = document.getElementById("r2_" + people[i].id);
+                    if(iPerson.checked)
+                        checked2.push(people[i].id);
+                }
+                let basicEntity = {
+                    "name": nameForm,
+                    "birthDate": birthForm,
+                    "deathDate": deathForm,
+                    "imageUrl": imageForm,
+                    "wikiUrl": wikiForm
+                }
+                postToDatabase("/entities", basicEntity, function (response) {
+                    let entity = JSON.parse(response).entity;
+                    let entityId = entity.id;
+                    for(let i = 0; i < checked1.length; i++) {
+                        let request = {
+                            "entityId": entityId,
+                            "productId": checked1[i]
+                        }
+                        putToDatabase(`/entities/${entityId}/products/add/${checked1[i]}`, request);
+                    }
+                    for(let i = 0; i < checked2.length; i++) {
+                        let request = {
+                            "entityId": entityId,
+                            "personId": checked2[i]
+                        }
+                        putToDatabase(`/entities/${entityId}/persons/add/${checked2[i]}`, request);
+                    }
+                    loadIndex();
+                });
+            }
+        });
+    });
+}
+
 // ------------ VER ELEMENTO ----------------
 
 function showProduct(event) {
@@ -646,23 +971,28 @@ function showEntity(event) {
 function generateElementInfo(myElement, type) {
     let main = document.getElementById("main");
     let index = putIndex();
+    main.appendChild(index);
     let username = putUsername();
-    let wiki = document.createElement("section");
-    wiki.innerHTML = '<iframe src="' + myElement.wiki + '"></iframe>';
+    main.appendChild(username);
+    if(myElement.wiki !== null) {
+        let wiki = document.createElement("section");
+        wiki.innerHTML = '<iframe src="' + myElement.wiki + '"></iframe>';
+        main.appendChild(wiki);
+    }
     let info = document.createElement("section");
     info.innerHTML = '<h3><b>' + myElement.name + '</b></h3>';
-    info.innerHTML += '<h4><b>' + myElement.birth + '</b></h4>';
-    info.innerHTML += '<h4><b>' + myElement.death + '</b></h4>';
-    info.innerHTML += '<img class="bigImage" src="' + myElement.image + '" alt="' + myElement.name + '" width="10%"/>';
+    if(myElement.birth !== null)
+        info.innerHTML += '<h4><b>' + myElement.birth + '</b></h4>';
+    if(myElement.death !== null)
+        info.innerHTML += '<h4><b>' + myElement.death + '</b></h4>';
+    if(myElement.image !== null)
+        info.innerHTML += '<img class="bigImage" src="' + myElement.image + '" alt="' + myElement.name + '" width="10%"/>';
+    main.appendChild(info);
     let related = document.createElement("section");
     let related1 = document.createElement("div");
     related1.setAttribute("class", "foot1");
     let related2 = document.createElement("div");
     related2.setAttribute("class", "foot2");
-    main.appendChild(index);
-    main.appendChild(username);
-    main.appendChild(wiki);
-    main.appendChild(info);
     related.appendChild(related1);
     related.appendChild(related2);
     main.appendChild(related);
@@ -872,22 +1202,650 @@ function entityRelatedPeople(id, array, section) {
         });
 }
 
+// ------------ EDITAR ELEMENTO ----------------
+
+function editProduct(event) {
+    let id = event.target.id;
+    getFromDB(`/products/${id}`, function (response) {
+        let jsonResponse = JSON.parse(response);
+        let product = jsonResponse.product;
+        let myProduct = new Product(product.id, product.name, product.birthDate, product.deathDate, product.imageUrl,
+            product.wikiUrl, product.entities, product.persons);
+        generateEditProductForm(myProduct);
+    });
+}
+function editPerson(event) {
+    let id = event.target.id;
+    getFromDB(`/persons/${id}`, function (response) {
+        let jsonResponse = JSON.parse(response);
+        let person = jsonResponse.person;
+        let myPerson = new Person(person.id, person.name, person.birthDate, person.deathDate, person.imageUrl,
+            person.wikiUrl, person.products, person.entities);
+        generateEditPersonForm(myPerson);
+    });
+}
+function editEntity(event) {
+    let id = event.target.id;
+    getFromDB(`/entities/${id}`, function (response) {
+        let jsonResponse = JSON.parse(response);
+        let entity = jsonResponse.entity;
+        let myEntity = new Entity(entity.id, entity.name, entity.birthDate, entity.deathDate, entity.imageUrl,
+            entity.wikiUrl, entity.products, entity.persons);
+        generateEditEntityForm(myEntity);
+    });
+}
+
+function generateEditProductForm(myProduct) {
+    let entities;
+    let people;
+    getElementsFromDB("/entities", function (response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayEntities = jsonResponse.entities;
+        entities = arrayEntities.map(function(item) {
+            let e = item.entity;
+            return new Entity(e.id, e.name, null, null, null, null, null, null);
+        });
+        getElementsFromDB("/persons", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayPeople = jsonResponse.persons;
+            people = arrayPeople.map(function(item) {
+                let p = item.person;
+                return new Person(p.id, p.name, null, null, null, null, null, null);
+            });
+
+            // cargar formulario
+            clean();
+            let main = document.getElementById("main");
+            let index = putIndex();
+            main.appendChild(index);
+            let username = putUsername();
+            main.appendChild(username);
+            let form = document.createElement("form");
+            form.innerHTML = '<h2>Editar producto</h2>';
+            form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
+            form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + myProduct.name + '"/>';
+            form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+            form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth" value = "' + myProduct.birth + '"/>';
+            form.innerHTML += '<label for = "Death" class = "label">Fecha de defunción</label>';
+            form.innerHTML += '<input id = "Death" class = "input" type = "date" name = "Death" value = "' + myProduct.death + '"/>';
+            form.innerHTML += '<label for = "Image" class = "label">Imagen</label>';
+            form.innerHTML += '<input id = "Image" class = "input" type = "text" name = "Image" value = "' + myProduct.image + '"/>';
+            form.innerHTML += '<label for = "Wiki" class = "label">Wiki</label>';
+            form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki" value = "' + myProduct.wiki + '"/>';
+            main.appendChild(form);
+
+            // cargar relacionados
+            let div1 = document.createElement("div");
+            form.appendChild(div1);
+            div1.innerHTML += '<p>Entidades relacionadas</p>';
+            let notFound;
+            for(let i = 0; i < entities.length; i++) {
+                notFound = true;
+                for(let j = 0; j < myProduct.relatedEntities.length && notFound; j++)
+                    if(entities[i].id === myProduct.relatedEntities[j]) {
+                        div1.innerHTML += `<input id="r1_${entities[i].id}" type="checkbox" checked="checked"/>${entities[i].name}`;
+                        notFound = false;
+                    }
+                if(notFound)
+                    div1.innerHTML += `<input id="r1_${entities[i].id}" type="checkbox"/>${entities[i].name}`;
+            }
+            let div2 = document.createElement("div");
+            form.appendChild(div2);
+            div2.innerHTML += '<p>Personas relacionadas</p>';
+            for(let i = 0; i < people.length; i++) {
+                notFound = true;
+                for(let j = 0; j < myProduct.relatedPeople.length && notFound; j++)
+                    if(people[i].id === myProduct.relatedPeople[j]) {
+                        div2.innerHTML += `<input id="r2_${people[i].id}" type="checkbox" checked="checked"/>${people[i].name}`;
+                        notFound = false;
+                    }
+                if(notFound)
+                    div2.innerHTML += `<input id="r2_${people[i].id}" type="checkbox"/>${people[i].name}`;
+            }
+
+            form.innerHTML += '<br>';
+            form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
+            form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "updateProduct(' + myProduct.id + ');"/>';
+        });
+    });
+}
+
+function generateEditPersonForm(myPerson) {
+    let products;
+    let entities;
+    getElementsFromDB("/products", function (response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayProducts = jsonResponse.products;
+        products = arrayProducts.map(function(item) {
+            let p = item.product;
+            return new Product(p.id, p.name, null, null, null, null, null, null);
+        });
+        getElementsFromDB("/entities", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayEntities = jsonResponse.entities;
+            entities = arrayEntities.map(function(item) {
+                let e = item.entity;
+                return new Entity(e.id, e.name, null, null, null, null, null, null);
+            });
+
+            // cargar formulario
+            clean();
+            let main = document.getElementById("main");
+            let index = putIndex();
+            main.appendChild(index);
+            let username = putUsername();
+            main.appendChild(username);
+            let form = document.createElement("form");
+            form.innerHTML = '<h2>Editar persona</h2>';
+            form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
+            form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + myPerson.name + '"/>';
+            form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+            form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth" value = "' + myPerson.birth + '"/>';
+            form.innerHTML += '<label for = "Death" class = "label">Fecha de defunción</label>';
+            form.innerHTML += '<input id = "Death" class = "input" type = "date" name = "Death" value = "' + myPerson.death + '"/>';
+            form.innerHTML += '<label for = "Image" class = "label">Imagen</label>';
+            form.innerHTML += '<input id = "Image" class = "input" type = "text" name = "Image" value = "' + myPerson.image + '"/>';
+            form.innerHTML += '<label for = "Wiki" class = "label">Wiki</label>';
+            form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki" value = "' + myPerson.wiki + '"/>';
+            main.appendChild(form);
+
+            // cargar relacionados
+            let div1 = document.createElement("div");
+            form.appendChild(div1);
+            div1.innerHTML += '<p>Productos relacionados</p>';
+            let notFound;
+            for(let i = 0; i < products.length; i++) {
+                notFound = true;
+                for(let j = 0; j < myPerson.relatedProducts.length && notFound; j++)
+                    if(products[i].id === myPerson.relatedProducts[j]) {
+                        div1.innerHTML += `<input id="r1_${products[i].id}" type="checkbox" checked="checked"/>${products[i].name}`;
+                        notFound = false;
+                    }
+                if(notFound)
+                    div1.innerHTML += `<input id="r1_${products[i].id}" type="checkbox"/>${products[i].name}`;
+            }
+            let div2 = document.createElement("div");
+            form.appendChild(div2);
+            div2.innerHTML += '<p>Entidades relacionadas</p>';
+            for(let i = 0; i < entities.length; i++) {
+                notFound = true;
+                for(let j = 0; j < myPerson.relatedEntities.length && notFound; j++)
+                    if(entities[i].id === myPerson.relatedEntities[j]) {
+                        div2.innerHTML += `<input id="r2_${entities[i].id}" type="checkbox" checked="checked"/>${entities[i].name}`;
+                        notFound = false;
+                    }
+                if(notFound)
+                    div2.innerHTML += `<input id="r2_${entities[i].id}" type="checkbox"/>${entities[i].name}`;
+            }
+
+            form.innerHTML += '<br>';
+            form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
+            form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "updatePerson(' + myPerson.id + ');"/>';
+        });
+    });
+}
+
+function generateEditEntityForm(myEntity) {
+    let products;
+    let people;
+    getElementsFromDB("/products", function (response) {
+        let jsonResponse = JSON.parse(response);
+        let arrayProducts = jsonResponse.products;
+        products = arrayProducts.map(function(item) {
+            let p = item.product;
+            return new Product(p.id, p.name, null, null, null, null, null, null);
+        });
+        getElementsFromDB("/persons", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayPeople = jsonResponse.persons;
+            people = arrayPeople.map(function(item) {
+                let p = item.person;
+                return new Person(p.id, p.name, null, null, null, null, null, null);
+            });
+
+            // cargar formulario
+            clean();
+            let main = document.getElementById("main");
+            let index = putIndex();
+            main.appendChild(index);
+            let username = putUsername();
+            main.appendChild(username);
+            let form = document.createElement("form");
+            form.innerHTML = '<h2>Editar entidad</h2>';
+            form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
+            form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + myEntity.name + '"/>';
+            form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+            form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth" value = "' + myEntity.birth + '"/>';
+            form.innerHTML += '<label for = "Death" class = "label">Fecha de defunción</label>';
+            form.innerHTML += '<input id = "Death" class = "input" type = "date" name = "Death" value = "' + myEntity.death + '"/>';
+            form.innerHTML += '<label for = "Image" class = "label">Imagen</label>';
+            form.innerHTML += '<input id = "Image" class = "input" type = "text" name = "Image" value = "' + myEntity.image + '"/>';
+            form.innerHTML += '<label for = "Wiki" class = "label">Wiki</label>';
+            form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki" value = "' + myEntity.wiki + '"/>';
+            main.appendChild(form);
+
+            // cargar relacionados
+            let div1 = document.createElement("div");
+            form.appendChild(div1);
+            div1.innerHTML += '<p>Productos relacionados</p>';
+            let notFound;
+            for(let i = 0; i < products.length; i++) {
+                notFound = true;
+                for(let j = 0; j < myEntity.relatedProducts.length && notFound; j++)
+                    if(products[i].id === myEntity.relatedProducts[j]) {
+                        div1.innerHTML += `<input id="r1_${products[i].id}" type="checkbox" checked="checked"/>${products[i].name}`;
+                        notFound = false;
+                    }
+                if(notFound)
+                    div1.innerHTML += `<input id="r1_${products[i].id}" type="checkbox"/>${products[i].name}`;
+            }
+            let div2 = document.createElement("div");
+            form.appendChild(div2);
+            div2.innerHTML += '<p>Personas relacionadas</p>';
+            for(let i = 0; i < people.length; i++) {
+                notFound = true;
+                for(let j = 0; j < myEntity.relatedPeople.length && notFound; j++)
+                    if(people[i].id === myEntity.relatedPeople[j]) {
+                        div2.innerHTML += `<input id="r2_${people[i].id}" type="checkbox" checked="checked"/>${people[i].name}`;
+                        notFound = false;
+                    }
+                if(notFound)
+                    div2.innerHTML += `<input id="r2_${people[i].id}" type="checkbox"/>${people[i].name}`;
+            }
+
+            form.innerHTML += '<br>';
+            form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
+            form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "updateEntity(' + myEntity.id + ');"/>';
+        });
+    });
+}
+
+function backToIndex() {
+    loadIndex();
+}
+
+function updateProduct(productId) {
+    let nameForm = document.getElementById("Name").value;
+    let birthForm = document.getElementById("Birth").value;
+    let deathForm = document.getElementById("Death").value;
+    let imageForm = document.getElementById("Image").value;
+    let wikiForm = document.getElementById("Wiki").value;
+    if(nameForm === "") {
+        alert("Error: el campo Nombre es obligatorio");
+        loadIndex();
+    }
+    else {
+        let entities;
+        let people;
+        getElementsFromDB("/entities", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayEntities = jsonResponse.entities;
+            entities = arrayEntities.map(function (item) {
+                let e = item.entity;
+                return e.id;
+            });
+            getElementsFromDB("/persons", function (response) {
+                let jsonResponse = JSON.parse(response);
+                let arrayPeople = jsonResponse.persons;
+                people = arrayPeople.map(function (item) {
+                    let p = item.person;
+                    return p.id;
+                });
+                getElementsFromDB(`/products/${productId}`, function (response) {
+                    let jsonResponse = JSON.parse(response);
+                    let product = jsonResponse.product;
+                    let checked1Before = product.entities;
+                    let checked2Before = product.persons;
+
+                    let checked1After = [];
+                    for (let i = 0; i < entities.length; i++) {
+                        let iEntity = document.getElementById("r1_" + entities[i]);
+                        if (iEntity.checked)
+                            checked1After.push(entities[i]);
+                    }
+                    let checked2After = [];
+                    for (let i = 0; i < people.length; i++) {
+                        let iPerson = document.getElementById("r2_" + people[i]);
+                        if (iPerson.checked)
+                            checked2After.push(people[i]);
+                    }
+                    let basicProduct = {
+                        "name": nameForm,
+                        "birthDate": birthForm,
+                        "deathDate": deathForm,
+                        "imageUrl": imageForm,
+                        "wikiUrl": wikiForm
+                    }
+                    putToDatabase(`/products/${productId}`, basicProduct);
+                    let notFound;
+                    let foundBefore;
+                    let foundAfter;
+                    for (let i = 0; i < entities.length; i++) {
+                        notFound = true;
+                        foundBefore = false;
+                        for (let j = 0; j < checked1Before.length && notFound; j++)
+                            if (entities[i] === checked1Before[j]) {
+                                foundBefore = true;
+                                notFound = false;
+                            }
+                        notFound = true;
+                        foundAfter = false;
+                        for (let j = 0; j < checked1After.length && notFound; j++)
+                            if (entities[i] === checked1After[j]) {
+                                foundAfter = true;
+                                notFound = false;
+                            }
+                        if (foundBefore === true && foundAfter === false) {
+                            let request = {
+                                "productId": productId,
+                                "entityId": entities[i]
+                            }
+                            putToDatabase(`/products/${productId}/entities/rem/${entities[i]}`, request);
+                        } else if (foundBefore === false && foundAfter === true) {
+                            let request = {
+                                "productId": productId,
+                                "entityId": entities[i]
+                            }
+                            putToDatabase(`/products/${productId}/entities/add/${entities[i]}`, request);
+                        }
+                    }
+
+                    for (let i = 0; i < people.length; i++) {
+                        notFound = true;
+                        foundBefore = false;
+                        for (let j = 0; j < checked2Before.length && notFound; j++)
+                            if (people[i] === checked2Before[j]) {
+                                foundBefore = true;
+                                notFound = false;
+                            }
+                        notFound = true;
+                        foundAfter = false;
+                        for (let j = 0; j < checked2After.length && notFound; j++)
+                            if (people[i] === checked2After[j]) {
+                                foundAfter = true;
+                                notFound = false;
+                            }
+                        if (foundBefore === true && foundAfter === false) {
+                            let request = {
+                                "productId": productId,
+                                "personId": people[i]
+                            }
+                            putToDatabase(`/products/${productId}/persons/rem/${people[i]}`, request);
+                        } else if (foundBefore === false && foundAfter === true) {
+                            let request = {
+                                "productId": productId,
+                                "personId": people[i]
+                            }
+                            putToDatabase(`/products/${productId}/persons/add/${people[i]}`, request);
+                        }
+                    }
+                    backToIndex();
+                });
+            });
+        });
+    }
+}
+
+function updatePerson(personId) {
+    let nameForm = document.getElementById("Name").value;
+    let birthForm = document.getElementById("Birth").value;
+    let deathForm = document.getElementById("Death").value;
+    let imageForm = document.getElementById("Image").value;
+    let wikiForm = document.getElementById("Wiki").value;
+    if(nameForm === "") {
+        alert("Error: el campo Nombre es obligatorio");
+        loadIndex();
+    }
+    else {
+        let products;
+        let entities;
+        getElementsFromDB("/products", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayProducts = jsonResponse.products;
+            products = arrayProducts.map(function (item) {
+                let p = item.product;
+                return p.id;
+            });
+            getElementsFromDB("/entities", function (response) {
+                let jsonResponse = JSON.parse(response);
+                let arrayEntities = jsonResponse.entities;
+                entities = arrayEntities.map(function (item) {
+                    let e = item.entity;
+                    return e.id;
+                });
+                getElementsFromDB(`/persons/${personId}`, function (response) {
+                    let jsonResponse = JSON.parse(response);
+                    let person = jsonResponse.person;
+                    let checked1Before = person.products;
+                    let checked2Before = person.entities;
+
+                    let checked1After = [];
+                    for (let i = 0; i < products.length; i++) {
+                        let iProduct = document.getElementById("r1_" + products[i]);
+                        if (iProduct.checked)
+                            checked1After.push(products[i]);
+                    }
+                    let checked2After = [];
+                    for (let i = 0; i < entities.length; i++) {
+                        let iEntity = document.getElementById("r2_" + entities[i]);
+                        if (iEntity.checked)
+                            checked2After.push(entities[i]);
+                    }
+                    let basicPerson = {
+                        "name": nameForm,
+                        "birthDate": birthForm,
+                        "deathDate": deathForm,
+                        "imageUrl": imageForm,
+                        "wikiUrl": wikiForm
+                    }
+                    putToDatabase(`/persons/${personId}`, basicPerson);
+                    let notFound;
+                    let foundBefore;
+                    let foundAfter;
+                    for (let i = 0; i < products.length; i++) {
+                        notFound = true;
+                        foundBefore = false;
+                        for (let j = 0; j < checked1Before.length && notFound; j++)
+                            if (products[i] === checked1Before[j]) {
+                                foundBefore = true;
+                                notFound = false;
+                            }
+                        notFound = true;
+                        foundAfter = false;
+                        for (let j = 0; j < checked1After.length && notFound; j++)
+                            if (products[i] === checked1After[j]) {
+                                foundAfter = true;
+                                notFound = false;
+                            }
+                        if (foundBefore === true && foundAfter === false) {
+                            let request = {
+                                "personId": personId,
+                                "productId": products[i]
+                            }
+                            putToDatabase(`/persons/${personId}/products/rem/${products[i]}`, request);
+                        } else if (foundBefore === false && foundAfter === true) {
+                            let request = {
+                                "personId": personId,
+                                "productId": products[i]
+                            }
+                            putToDatabase(`/persons/${personId}/products/add/${products[i]}`, request);
+                        }
+                    }
+
+                    for (let i = 0; i < entities.length; i++) {
+                        notFound = true;
+                        foundBefore = false;
+                        for (let j = 0; j < checked2Before.length && notFound; j++)
+                            if (entities[i] === checked2Before[j]) {
+                                foundBefore = true;
+                                notFound = false;
+                            }
+                        notFound = true;
+                        foundAfter = false;
+                        for (let j = 0; j < checked2After.length && notFound; j++)
+                            if (entities[i] === checked2After[j]) {
+                                foundAfter = true;
+                                notFound = false;
+                            }
+                        if (foundBefore === true && foundAfter === false) {
+                            let request = {
+                                "personId": personId,
+                                "entityId": entities[i]
+                            }
+                            putToDatabase(`/persons/${personId}/entities/rem/${entities[i]}`, request);
+                        } else if (foundBefore === false && foundAfter === true) {
+                            let request = {
+                                "personId": personId,
+                                "entityid": entities[i]
+                            }
+                            putToDatabase(`/persons/${personId}/entities/add/${entities[i]}`, request);
+                        }
+                    }
+                    backToIndex();
+                });
+            });
+        });
+    }
+}
+
+function updateEntity(entityId) {
+    let nameForm = document.getElementById("Name").value;
+    let birthForm = document.getElementById("Birth").value;
+    let deathForm = document.getElementById("Death").value;
+    let imageForm = document.getElementById("Image").value;
+    let wikiForm = document.getElementById("Wiki").value;
+    if(nameForm === "") {
+        alert("Error: el campo Nombre es obligatorio");
+        loadIndex();
+    }
+    else {
+        let products;
+        let people;
+        getElementsFromDB("/products", function (response) {
+            let jsonResponse = JSON.parse(response);
+            let arrayProducts = jsonResponse.products;
+            products = arrayProducts.map(function (item) {
+                let p = item.product;
+                return p.id;
+            });
+            getElementsFromDB("/persons", function (response) {
+                let jsonResponse = JSON.parse(response);
+                let arrayPeople = jsonResponse.persons;
+                people = arrayPeople.map(function (item) {
+                    let p = item.person;
+                    return p.id;
+                });
+                getElementsFromDB(`/entities/${entityId}`, function (response) {
+                    let jsonResponse = JSON.parse(response);
+                    let entity = jsonResponse.entity;
+                    let checked1Before = entity.products;
+                    let checked2Before = entity.persons;
+
+                    let checked1After = [];
+                    for (let i = 0; i < products.length; i++) {
+                        let iProduct = document.getElementById("r1_" + products[i]);
+                        if (iProduct.checked)
+                            checked1After.push(products[i]);
+                    }
+                    let checked2After = [];
+                    for (let i = 0; i < people.length; i++) {
+                        let iPerson = document.getElementById("r2_" + people[i]);
+                        if (iPerson.checked)
+                            checked2After.push(people[i]);
+                    }
+                    let basicEntity = {
+                        "name": nameForm,
+                        "birthDate": birthForm,
+                        "deathDate": deathForm,
+                        "imageUrl": imageForm,
+                        "wikiUrl": wikiForm
+                    }
+                    putToDatabase(`/entities/${entityId}`, basicEntity);
+                    let notFound;
+                    let foundBefore;
+                    let foundAfter;
+                    for (let i = 0; i < products.length; i++) {
+                        notFound = true;
+                        foundBefore = false;
+                        for (let j = 0; j < checked1Before.length && notFound; j++)
+                            if (products[i] === checked1Before[j]) {
+                                foundBefore = true;
+                                notFound = false;
+                            }
+                        notFound = true;
+                        foundAfter = false;
+                        for (let j = 0; j < checked1After.length && notFound; j++)
+                            if (products[i] === checked1After[j]) {
+                                foundAfter = true;
+                                notFound = false;
+                            }
+                        if (foundBefore === true && foundAfter === false) {
+                            let request = {
+                                "entityId": entityId,
+                                "productId": products[i]
+                            }
+                            putToDatabase(`/entities/${entityId}/products/rem/${products[i]}`, request);
+                        } else if (foundBefore === false && foundAfter === true) {
+                            let request = {
+                                "entityId": entityId,
+                                "productId": products[i]
+                            }
+                            putToDatabase(`/entities/${entityId}/products/add/${products[i]}`, request);
+                        }
+                    }
+
+                    for (let i = 0; i < people.length; i++) {
+                        notFound = true;
+                        foundBefore = false;
+                        for (let j = 0; j < checked2Before.length && notFound; j++)
+                            if (people[i] === checked2Before[j]) {
+                                foundBefore = true;
+                                notFound = false;
+                            }
+                        notFound = true;
+                        foundAfter = false;
+                        for (let j = 0; j < checked2After.length && notFound; j++)
+                            if (people[i] === checked2After[j]) {
+                                foundAfter = true;
+                                notFound = false;
+                            }
+                        if (foundBefore === true && foundAfter === false) {
+                            let request = {
+                                "entityId": entityId,
+                                "personId": people[i]
+                            }
+                            putToDatabase(`/entities/${entityId}/persons/rem/${people[i]}`, request);
+                        } else if (foundBefore === false && foundAfter === true) {
+                            let request = {
+                                "entityId": entityId,
+                                "personId": people[i]
+                            }
+                            putToDatabase(`/entities/${entityId}/persons/add/${people[i]}`, request);
+                        }
+                    }
+                    backToIndex();
+                });
+            });
+        });
+    }
+}
+
 // ------------ ELIMINAR ELEMENTO ----------------
 
 function deleteProduct(event) {
     let id = event.target.id;
     deleteOnDatabase(`/products/${id}`);
-    loadIndex();
+    backToIndex();
 }
 function deletePerson(event) {
     let id = event.target.id;
     deleteOnDatabase(`/persons/${id}`);
-    loadIndex();
+    backToIndex();
 }
 function deleteEntity(event) {
     let id = event.target.id;
     deleteOnDatabase(`/entities/${id}`);
-    loadIndex();
+    backToIndex();
 }
 
 // ------------ PERFIL ----------------
@@ -1051,208 +2009,6 @@ function deleteUser(id) {
 
 
 
-// DE AQUÍ PARA ARRIBA FUNCIONA
-
-// ----------------------------------------------------------------------------------------
-
-// DE AQUÍ PARA ABAJO PUEDE NO FUNCIONAR
-
-// ------------ CREAR ELEMENTO ----------------
-
-function createProduct() {
-    let entities;
-    let people;
-    getElementsFromDB("/entities", function (response) {
-        let jsonResponse = JSON.parse(response);
-        let arrayEntities = jsonResponse.entities;
-        entities = arrayEntities.map(function(item) {
-            let e = item.entity;
-            return new Entity(e.id, e.name, null, null, null, null, null, null);
-        });
-        getElementsFromDB("/persons", function (response) {
-            let jsonResponse = JSON.parse(response);
-            let arrayPeople = jsonResponse.persons;
-            people = arrayPeople.map(function(item) {
-                let p = item.person;
-                return new Person(p.id, p.name, null, null, null, null, null, null);
-            });
-        });
-    });
-    generateCreateElementForm(entities, people, "product");
-}
-function createPerson() {}
-function createEntity() {}
-
-function generateCreateElementForm(related1, related2, type) {
-    clean();
-    let main = document.getElementById("main");
-    let index = putIndex();
-    let username = putUsername();
-    let form = document.createElement("form");
-    if(type === "product")
-        form.innerHTML = '<p>Crear producto</p>';
-    else if(type === "entity")
-        form.innerHTML = '<p>Crear entidad</p>';
-    else
-        form.innerHTML = '<p>Crear producto</p>';
-    form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
-    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name"/>';
-    form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
-    form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth"/>';
-    form.innerHTML += '<label for = "Death" class = "label">Fecha de defunción</label>';
-    form.innerHTML += '<input id = "Death" class = "input" type = "date" name = "Death"/>';
-    form.innerHTML += '<label for = "Image" class = "label">Imagen</label>';
-    form.innerHTML += '<input id = "Image" class = "input" type = "text" name = "Image"/>';
-    form.innerHTML += '<label for = "Wiki" class = "label">Wiki</label>';
-    form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki"/>';
-    form.innerHTML += '<br>';
-    if(type === "product")
-        form.innerHTML += '<p>Entidades relacionadas</p>';
-    else
-        form.innerHTML += '<p>Productos relacionados</p>';
-    for(let i = 0; i < related1.length; i++)
-        form.innerHTML += `<article><input id="${related1[i].id}" type="checkbox"/>${related1[i].name}</article>`;
-    if(type === "person")
-        form.innerHTML += '<p>Entidades relacionadas</p>';
-    else
-        form.innerHTML += '<p>Personas relacionadas</p>';
-    for(let i = 0; i < related2.length; i++)
-        form.innerHTML += `<article><input id="${related2[i].id}" type="checkbox"/>${related2[i].name}</article>`;
-    form.innerHTML += '<br>';
-    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
-    form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editElement();"/>';
-    main.appendChild(index);
-    main.appendChild(username);
-    main.appendChild(form);
-}
-
-// ------------ EDITAR ELEMENTO ----------------
-
-function editProduct(event) {
-    let id = event.target.id;
-    getFromDB(`/products/${id}`, function (response) {
-        let jsonResponse = JSON.parse(response);
-        let product = jsonResponse.product;
-        let myProduct = new Product(product.id, product.name, product.birthDate, product.deathDate, product.imageUrl,
-            product.wikiUrl, product.entities, product.persons);
-        generateEditElementForm(myProduct, "product");
-    });
-}
-function editPerson() {}
-function editEntity() {}
-
-function generateEditElementForm(myElement, type) {
-    clean();
-    let main = document.getElementById("main");
-    let index = putIndex();
-    let username = putUsername();
-    let form = basicEditForm(myElement, type);
-    main.appendChild(index);
-    main.appendChild(username);
-    main.appendChild(form);
-    let div1 = document.createElement("div");
-    let div2 = document.createElement("div");
-    form.appendChild(div1);
-    form.appendChild(div2);
-    if(type === "product") {
-        addProductRelatedEntitiesForm(myElement.relatedEntities, div1);
-        // form.innerHTML += addProductRelatedForm(myElement.people);
-    }
-    else if(type === "entity") {
-        alert();
-        // form.innerHTML += addEntityRelatedForm(myElement.products);
-        // form.innerHTML += addEntityRelatedForm(myElement.people);
-    }
-    else {
-        alert();
-        // form.innerHTML += addPersonRelatedForm(myElement.products);
-        // form.innerHTML += addPersonRelatedForm(myElement.entities);
-    }
-    form.innerHTML += '<br>';
-    form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
-    form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editElement();"/>';
-}
-
-function basicEditForm(myElement, type) {
-    let form = document.createElement("form");
-    if(type === "product")
-        form.innerHTML = '<h2>Editar producto</h2>';
-    else if(type === "entity")
-        form.innerHTML = '<h2>Editar entidad</h2>';
-    else
-        form.innerHTML = '<h2>Editar persona</h2>';
-    form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
-    form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + myElement.name + '"/>';
-    form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
-    form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth" value = "' + myElement.birth + '"/>';
-    form.innerHTML += '<label for = "Death" class = "label">Fecha de defunción</label>';
-    form.innerHTML += '<input id = "Death" class = "input" type = "date" name = "Death" value = "' + myElement.death + '"/>';
-    form.innerHTML += '<label for = "Image" class = "label">Imagen</label>';
-    form.innerHTML += '<input id = "Image" class = "input" type = "text" name = "Image" value = "' + myElement.image + '"/>';
-    form.innerHTML += '<label for = "Wiki" class = "label">Wiki</label>';
-    form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki" value = "' + myElement.wiki + '"/>';
-    return form;
-}
-
-function addProductRelatedEntitiesForm(relatedIds, div) {
-    let p = document.createElement("p");
-    p.innerHTML = 'Entidades relacionadas';
-    div.appendChild(p);
-    getElementsFromDB(`/entities`, function (response) {
-        let jsonResponse = JSON.parse(response);
-        let arrayEntities = jsonResponse.entities;
-        let entities = arrayEntities.map(function(item) {
-            let e = item.entity;
-            return new Entity(e.id, e.name, null, null, null, null, null, null);
-        });
-        if(relatedIds !== null) {
-            let notFound;
-            let entityId;
-            for (let i = 0; i < entities.length; i++) {
-                entityId = entities[i].id;
-                notFound = true;
-                for (let j = 0; j < relatedIds.length && notFound; j++)
-                    if (entityId === relatedIds[j]) {
-                        let article = document.createElement("article");
-                        article.innerHTML = `<input id="${entities[i].id}" type="checkbox" checked="checked"/>${entities[i].name}`;
-                        div.appendChild(article);
-                        let br = document.createElement("br");
-                        div.appendChild(br);
-                        notFound = false;
-                    }
-                if (notFound) {
-                    let article = document.createElement("article");
-                    article.innerHTML = `<input id="${entities[i].id}" type="checkbox"/>${entities[i].name}`;
-                    div.appendChild(article);
-                    let br = document.createElement("br");
-                    div.appendChild(br);
-                }
-            }
-        }
-        else
-            for(let i = 0; i < entities.length; i++) {
-                let article = document.createElement("article");
-                article.innerHTML = `<input id="${entities[i].id}" type="checkbox"/>${entities[i].name}`;
-                div.appendChild(article);
-                let br = document.createElement("br");
-                div.appendChild(br);
-            }
-    });
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1269,387 +2025,5 @@ function loadLocalStorage() {
     let person3 = new Person("Brendan Eich", "01/01/1961", "", "https://upload.wikimedia.org/wikipedia/commons/d/d1/Brendan_Eich_Mozilla_Foundation_official_photo.jpg", "https://es.wikipedia.org/wiki/Brendan_Eich");
     let entity3 = new Entity("Netscape Communications", "04/04/1994", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Netscape_logo.svg/320px-Netscape_logo.svg.png", "https://es.wikipedia.org/wiki/Netscape_Communications_Corporation", [person3]);
     let product3 = new Product("Javascript", "04/12/1995", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Unofficial_JavaScript_logo_2.svg/1200px-Unofficial_JavaScript_logo_2.svg.png", "https://es.wikipedia.org/wiki/JavaScript", [person3], [entity3]);
-}
-*/
-
-/*
-function loadRelatedWithProducts(myElement) {
-    let footer = document.getElementById("footer");
-
-    let div1 = document.createElement("div");
-    div1.setAttribute("class", "foot1");
-    let p1 = document.createElement("p");
-    let title1 = document.createTextNode("Entidades relacionadas");
-    p1.appendChild(title1);
-    div1.appendChild(p1);
-    if(myElement.relatedEntities != undefined)
-        for(let i = 0; i < myElement.relatedEntities.length; i++) {
-            let article = document.createElement("article");
-            let img = document.createElement("img");
-            img.setAttribute("src", myElement.relatedEntities[i].image);
-            img.setAttribute("alt", myElement.relatedEntities[i].name);
-            img.setAttribute("class", "imageFooter");
-            article.appendChild(img);
-            let a = document.createElement("a");
-            let name = document.createTextNode(myElement.relatedEntities[i].name);
-            a.appendChild(name);
-            a.setAttribute("id", myElement.relatedEntities[i].id);
-            a.addEventListener('click', showEntity);
-            article.appendChild(a);
-            div1.appendChild(article);
-        }
-    footer.appendChild(div1);
-
-    let div2 = document.createElement("div");
-    div2.setAttribute("class", "foot2");
-    let p2 = document.createElement("p");
-    let title2 = document.createTextNode("Personas relacionadas");
-    p2.appendChild(title2);
-    div2.appendChild(p2);
-    if(myElement.relatedPeople != undefined)
-        for(let i = 0; i < myElement.relatedPeople.length; i++) {
-            let article = document.createElement("article");
-            let img = document.createElement("img");
-            img.setAttribute("src", myElement.relatedPeople[i].image);
-            img.setAttribute("alt", myElement.relatedPeople[i].name);
-            img.setAttribute("class", "imageFooter");
-            article.appendChild(img);
-            let a = document.createElement("a");
-            let name = document.createTextNode(myElement.relatedPeople[i].name);
-            a.appendChild(name);
-            a.setAttribute("id", myElement.relatedPeople[i].id);
-            a.addEventListener('click', showPerson);
-            article.appendChild(a);
-            div2.appendChild(article);
-        }
-    footer.appendChild(div2);
-}
-*/
-
-/*
-function loadCreateOrUpdateElement() {
-    let myElementType =  getFromLocalStorageNoParse("myElementType");
-    let action = getFromLocalStorageNoParse("action");
-    let form = document.getElementById("createOrUpdateElementForm");
-    if(action === "create") {
-        if(myElementType === "productType")
-            form.innerHTML = '<h2>Crear producto</h2>';
-        else if(myElementType === "personType")
-            form.innerHTML = '<h2>Crear persona</h2>';
-        else
-            form.innerHTML = '<h2>Crear entidad</h2>';
-        form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
-        form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name"/>';
-        form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
-        form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth"/>';
-        form.innerHTML += '<label for = "Death" class = "label">Fecha de defunción</label>';
-        form.innerHTML += '<input id = "Death" class = "input" type = "date" name = "Death"/>';
-        form.innerHTML += '<label for = "Image" class = "label">Imagen</label>';
-        form.innerHTML += '<input id = "Image" class = "input" type = "text" name = "Image"/>';
-        form.innerHTML += '<label for = "Wiki" class = "label">Wiki</label>';
-        form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki"/>';
-        if(myElementType === "entityType" || myElementType === "productType") {
-            let people = getFromLocalStorage("people");
-            if(people.length > 0) {
-                form.innerHTML += '<p>Personas relacionadas</p>';
-                for(let i = 0; i < people.length; i++) 
-                    form.innerHTML += '<article><input id="p' + i + '" type="checkbox"/>' + people[i].name + '</article><br>';
-            }
-            if(myElementType === "productType") {
-                let entities = getFromLocalStorage("entities");
-                if(entities.length > 0) {
-                    form.innerHTML += '<p>Entidades relacionadas</p>';
-                    for(let i = 0; i < entities.length; i++) 
-                        form.innerHTML += '<article><input id="e' + i + '" type="checkbox"/>' + entities[i].name + '</article><br>';
-                }
-            }
-        }
-        form.innerHTML += '<br>';
-        form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editElement();"/>';
-    }
-    else if(action === "update") {
-        let myElement = getFromLocalStorage("myElement");
-        if(myElementType === "productType")
-            form.innerHTML = '<h2>Editar producto</h2>';
-        else if(myElementType === "personType")
-            form.innerHTML = '<h2>Editar persona</h2>';
-        else
-            form.innerHTML = '<h2>Editar entidad</h2>';
-        form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
-        form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + myElement.name + '"/>';
-        form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
-        let dateArray = myElement.birth.split('/');
-        let finalDate = dateArray[2] + "-" + dateArray[1] + "-" + dateArray[0];
-        form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth" value = "' + finalDate + '"/>';
-        form.innerHTML += '<label for = "Death" class = "label">Fecha de defunción</label>';
-        if(myElement.death == "")
-            form.innerHTML += '<input id = "Death" class = "input" type = "date" name = "Death"/>';
-        else {
-            dateArray = myElement.death.split('/');
-            finalDate = dateArray[2] + "-" + dateArray[1] + "-" + dateArray[0];
-            form.innerHTML += '<input id = "Death" class = "input" type = "date" name = "Death" value = "' + finalDate + '"/>';
-        }
-        form.innerHTML += '<label for = "Image" class = "label">Imagen</label>';
-        form.innerHTML += '<input id = "Image" class = "input" type = "text" name = "Image" value = "' + myElement.image + '"/>';
-        form.innerHTML += '<label for = "Wiki" class = "label">Wiki</label>';
-        form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki" value = "' + myElement.wiki + '"/>';
-        if(myElementType === "entityType" || myElementType === "productType") {
-            let people = getFromLocalStorage("people");
-            if(people.length > 0) {
-                form.innerHTML += '<p>Personas relacionadas</p>';
-                for(let i = 0; i < people.length; i++) {
-                    let notFound = true;
-                    for(let j = 0; j < myElement.relatedPeople.length && notFound; j++)
-                        if(myElement.relatedPeople[j].id == people[i].id) {
-                            notFound = false;
-                            form.innerHTML += '<article><input id="p' + i + '" type="checkbox" checked="checked"/>' + people[i].name + '</article><br>';
-                        }
-                    if(notFound)
-                        form.innerHTML += '<article><input id="p' + i + '" type="checkbox"/>' + people[i].name + '</article><br>';
-                }
-            }
-            if(myElementType === "productType") {
-                let entities = getFromLocalStorage("entities");
-                if(entities.length > 0) {
-                    form.innerHTML += '<p>Entidades relacionadas</p>';
-                    for(let i = 0; i < entities.length; i++) {
-                        let notFound = true;
-                        for(let j = 0; j < myElement.relatedEntities.length && notFound; j++)
-                            if(myElement.relatedEntities[j].id == entities[i].id) {
-                                notFound = false;
-                                form.innerHTML += '<article><input id="e' + i + '" type="checkbox" checked="checked"/>' + entities[i].name + '</article><br>';
-                            }
-                        if(notFound)
-                            form.innerHTML += '<article><input id="e' + i + '" type="checkbox"/>' + entities[i].name + '</article><br>';
-                    }
-                }
-            }
-        }
-        form.innerHTML += '<br>';
-        form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editElement();"/>';
-        setLocalStorage("myElementId", myElement.id);
-    }
-    else
-        alert("Error: action erróneo.");
-}
-*/
-
-/*
-function editElement() {
-    let myElementType = getFromLocalStorageNoParse("myElementType");
-    let action = getFromLocalStorageNoParse("action");
-    let name = document.getElementById("Name").value;
-    let birth = document.getElementById("Birth").value;
-    let death = document.getElementById("Death").value;
-    let image = document.getElementById("Image").value;
-    let wiki = document.getElementById("Wiki").value;
-    if(validateElement(name, birth, image, wiki)) {
-        let dateArray = birth.split('-');
-        birth = dateArray[2] + "/" + dateArray[1] + "/" + dateArray[0];
-        if(death != "") {
-            dateArray = death.split('-');
-            death = dateArray[2] + "/" + dateArray[1] + "/" + dateArray[0];
-        }
-        if(action === "create") {
-            if(myElementType === "productType") {
-                let relatedPeople = [];
-                let people = getFromLocalStorage("people");
-                for(let i = 0; i < people.length; i++) {
-                    let iPerson = document.getElementById("p" + i);
-                    if(iPerson.checked)
-                        relatedPeople.push(people[i]);
-                }
-                let relatedEntities = [];
-                let entities = getFromLocalStorage("entities");
-                for(let i = 0; i < entities.length; i++) {
-                    let iEntity = document.getElementById("e" + i);
-                    if(iEntity.checked)
-                        relatedEntities.push(entities[i]);
-                }
-                let newProduct = new Product(name, birth, death, image, wiki, relatedPeople, relatedEntities);
-                let products = getFromLocalStorage("products");
-                products.push(newProduct);
-                setLocalStorage("products", products);
-            }
-            else if(myElementType === "personType") {
-                let newPerson = new Person(name, birth, death, image, wiki);
-                let people = getFromLocalStorage("people");
-                people.push(newPerson);
-                setLocalStorage("people", people);
-            }
-            else if(myElementType === "entityType") {
-                let relatedPeople = [];
-                let people = getFromLocalStorage("people");
-                for(let i = 0; i < people.length; i++) {
-                    let iPerson = document.getElementById("p" + i);
-                    if(iPerson.checked)
-                        relatedPeople.push(people[i]);
-                }
-                let newEntity = new Entity(name, birth, death, image, wiki, relatedPeople);
-                let entities = getFromLocalStorage("entities");
-                entities.push(newEntity);
-                setLocalStorage("entities", entities);
-            }
-            else
-                alert("Error: elementType erróneo.");
-        }
-        else if(action === "update") {
-            let myElementId = getFromLocalStorage("myElementId");
-            if(myElementType === "productType") {
-                let relatedPeople = [];
-                let people = getFromLocalStorage("people");
-                for(let i = 0; i < people.length; i++) {
-                    let iPerson = document.getElementById("p" + i);
-                    if(iPerson.checked)
-                        relatedPeople.push(people[i]);
-                }
-                let relatedEntities = [];
-                let entities = getFromLocalStorage("entities");
-                for(let i = 0; i < entities.length; i++) {
-                    let iEntity = document.getElementById("e" + i);
-                    if(iEntity.checked)
-                        relatedEntities.push(entities[i]);
-                }
-                let products = getFromLocalStorage("products");
-                let notFound = true;
-                for(let i = 0; i < products.length && notFound; i++)
-                    if(myElementId == products[i].id) {
-                        products[i].name = name;
-                        products[i].birth = birth;
-                        products[i].death = death;
-                        products[i].image = image;
-                        products[i].wiki = wiki;
-                        products[i].relatedPeople = relatedPeople;
-                        products[i].relatedEntities = relatedEntities;
-                        notFound = false;
-                    }
-                setLocalStorage("products", products);
-            }
-            else if(myElementType === "personType") {
-                let people = getFromLocalStorage("people");
-                let notFound = true;
-                for(let i = 0; i < people.length && notFound; i++)
-                    if(myElementId == people[i].id) {
-                        people[i].name = name;
-                        people[i].birth = birth;
-                        people[i].death = death;
-                        people[i].image = image;
-                        people[i].wiki = wiki;
-                        notFound = false;
-                    }
-                setLocalStorage("people", people);
-                let entities = getFromLocalStorage("entities");
-                for(let i = 0; i < entities.length; i++) {
-                    let notFound = true;
-                    for(let j = 0; j < entities[i].relatedPeople.length && notFound; j++) {
-                        if(myElementId == entities[i].relatedPeople[j].id) {
-                            entities[i].relatedPeople[j].name = name;
-                            entities[i].relatedPeople[j].birth = birth;
-                            entities[i].relatedPeople[j].death = death;
-                            entities[i].relatedPeople[j].image = image;
-                            entities[i].relatedPeople[j].wiki = wiki;
-                            notFound = false;
-                        }
-                    }
-                }
-                setLocalStorage("entities", entities);
-                let products = getFromLocalStorage("products");
-                for(let i = 0; i < products.length; i++) {
-                    let notFound = true;
-                    for(let j = 0; j < products[i].relatedPeople.length && notFound; j++) {
-                        if(myElementId == products[i].relatedPeople[j].id) {
-                            products[i].relatedPeople[j].name = name;
-                            products[i].relatedPeople[j].birth = birth;
-                            products[i].relatedPeople[j].death = death;
-                            products[i].relatedPeople[j].image = image;
-                            products[i].relatedPeople[j].wiki = wiki;
-                            notFound = false;
-                        }
-                    }
-                    for(let j = 0; j < products[i].relatedEntities.length; j++)
-                        if(products[i].relatedEntities[j].relatedPeople != []) {
-                            notFound = true;
-                            for(let k = 0; k < products[i].relatedEntities[j].relatedPeople.length; k++) {
-                                if(myElementId == products[i].relatedEntities[j].relatedPeople[k].id) {
-                                    products[i].relatedEntities[j].relatedPeople[k].name = name;
-                                    products[i].relatedEntities[j].relatedPeople[k].birth = birth;
-                                    products[i].relatedEntities[j].relatedPeople[k].death = death;
-                                    products[i].relatedEntities[j].relatedPeople[k].image = image;
-                                    products[i].relatedEntities[j].relatedPeople[k].wiki = wiki;
-                                    notFound = false;
-                                }
-                        }
-                    }
-                }
-                for(let i = 0; i < products.length; i++) {
-                    let notFound = true;
-                    for(let j = 0; j < products[i].relatedPeople.length && notFound; j++) {
-                        if(myElementId == products[i].relatedPeople[j].id) {
-                            products[i].relatedPeople[j].name = name;
-                            products[i].relatedPeople[j].birth = birth;
-                            products[i].relatedPeople[j].death = death;
-                            products[i].relatedPeople[j].image = image;
-                            products[i].relatedPeople[j].wiki = wiki;
-                            notFound = false;
-                        }
-                    }
-                }
-                setLocalStorage("products", products);
-            }
-            else if(myElementType === "entityType") {
-                let relatedPeople = [];
-                let people = getFromLocalStorage("people");
-                for(let i = 0; i < people.length; i++) {
-                    let iPerson = document.getElementById("p" + i);
-                    if(iPerson.checked)
-                        relatedPeople.push(people[i]);
-                }
-                let entities = getFromLocalStorage("entities");
-                let notFound = true;
-                for(let i = 0; i < entities.length && notFound; i++)
-                    if(myElementId == entities[i].id) {
-                        entities[i].name = name;
-                        entities[i].birth = birth;
-                        entities[i].death = death;
-                        entities[i].image = image;
-                        entities[i].wiki = wiki;
-                        entities[i].relatedPeople = relatedPeople;
-                        notFound = false;
-                    }
-                setLocalStorage("entities", entities);
-                let products = getFromLocalStorage("products");
-                for(let i = 0; i < products.length; i++) {
-                    let notFound = true;
-                    for(let j = 0; j < products[i].relatedEntities.length && notFound; j++) {
-                        if(myElementId == products[i].relatedEntities[j].id) {
-                            products[i].relatedEntities[j].name = name;
-                            products[i].relatedEntities[j].birth = birth;
-                            products[i].relatedEntities[j].death = death;
-                            products[i].relatedEntities[j].image = image;
-                            products[i].relatedEntities[j].wiki = wiki;
-                            products[i].relatedEntities[j].relatedPeople = relatedPeople;
-                            notFound = false;
-                        }
-                    }
-                }
-                setLocalStorage("products", products);
-            }
-        }
-        else
-            alert("Error: action erróneo.");
-        window.location.href = "index.html";
-    }
-    else {
-        alert("Error: Todos los campos son obligatorios");
-        loadCreateOrUpdateElement();
-    }
-}
-*/
-
-/*
-function deleteProduct(event) {
-    let id = event.target.id;
-    deleteOnDatabase(`/products/${id}`)
-    loadIndex();
 }
 */
