@@ -1158,6 +1158,10 @@ components:
           enum:
             - reader
             - writer
+        birth:
+          description: User birth date
+          type: string
+          format: date
         # _links:
         #   description: link relations
         #   type: object
@@ -1180,6 +1184,7 @@ components:
           username: user1508
           email: miw.etsisi@upm.es
           role: reader
+          birth: "2023-09-04"
           # _links:
           #   parent:
           #     href: /api/v1/users
@@ -1405,11 +1410,17 @@ components:
                 enum:
                   - reader
                   - writer
+              birth:
+                description: User birth date
+                type: string
+                format: date
+                default: null
             example:
               username: username
               email: User_email@example.com
               password: User_password
               role: reader
+              birth: 01-01-2000
     LoginRequestBody:
       description: Registered **username** and **password**
       required: true

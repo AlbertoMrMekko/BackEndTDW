@@ -9,6 +9,7 @@
 
 namespace TDW\ACiencia\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
 use JetBrains\PhpStorm\ArrayShape;
@@ -64,6 +65,13 @@ class User implements JsonSerializable, Stringable
     )]
     protected Role $role;
 
+    #[ORM\Column(
+        name: "birth",
+        type: "datetime",
+        nullable: true
+    )]
+    protected DateTime | null $birth = null;
+
     /**
      * User constructor.
      *
@@ -71,6 +79,7 @@ class User implements JsonSerializable, Stringable
      * @param string $email email
      * @param string $password password
      * @param Role|string $role Role::*
+     * @param DateTime|null $birth birth
      *
      * @throws InvalidArgumentException
      */
@@ -78,13 +87,15 @@ class User implements JsonSerializable, Stringable
         string $username = '',
         string $email = '',
         string $password = '',
-        Role|string $role = Role::READER
+        Role|string $role = Role::READER,
+        ?DateTime $birth = null
     ) {
         $this->id       = 0;
         $this->username = $username;
         $this->email    = $email;
         $this->setPassword($password);
         $this->setRole($role);
+        $this->birth = $birth;
     }
 
     /**
@@ -169,6 +180,16 @@ class User implements JsonSerializable, Stringable
         }
     }
 
+    final public function getBirth(): ?DateTime
+    {
+        return $this->birth;
+    }
+
+    final public function setBirthDate(?DateTime $birth): void
+    {
+        $this->birth = $birth;
+    }
+
     /**
      * @return Role[] [ READER ] | [ READER , WRITER ]
      */
@@ -237,6 +258,7 @@ class User implements JsonSerializable, Stringable
                 'username' => $this->getUsername(),
                 'email' => $this->getEmail(),
                 'role' => $this->role->name,
+                'birth' => $this->getBirth()?->format('Y-m-d'),
             ]
         ];
     }

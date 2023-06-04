@@ -9,6 +9,7 @@
 
 namespace TDW\ACiencia\Controller\User;
 
+use DateTime;
 use Doctrine\ORM;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
@@ -98,6 +99,11 @@ class UpdateCommand
             } catch (Throwable) {    // 400 BAD_REQUEST: unexpected role
                 return Error::createResponse($response, StatusCode::STATUS_BAD_REQUEST);
             }
+        }
+
+        // birth
+        if (isset($req_data['birth'])) {
+            $user->setBirthDate(DateTime::createFromFormat('!Y-m-d', $req_data['birth']));
         }
 
         $this->entityManager->flush();
