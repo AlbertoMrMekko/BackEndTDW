@@ -101,6 +101,11 @@ class UpdateCommand
             }
         }
 
+        // active
+        if (isset($req_data['active'])) {
+            $user->setActive($req_data['active']);
+        }
+
         // birth
         if (isset($req_data['birth'])) {
             $user->setBirth(DateTime::createFromFormat('!Y-m-d', $req_data['birth']));

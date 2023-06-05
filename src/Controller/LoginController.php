@@ -50,13 +50,13 @@ class LoginController
                 ->findOneBy([ 'username' => $req_data['username'] ]);
         }
 
-        if (!$user instanceof User || !$user->validatePassword($req_data['password'])) {    // 400
+        if (!$user instanceof User || !$user->validatePassword($req_data['password']) || $user->getActive() === false) {    // 400
             return Error::createResponse(   // https://www.oauth.com/oauth2-servers/access-tokens/access-token-response/
                 $response,
                 StatusCode::STATUS_BAD_REQUEST,
                 [
                     'error' => 'invalid_grant',
-                    'error_description' => 'The user’s password is invalid or expired',
+                    'error_description' => 'The user’s password is invalid or expired, or your account is not active',
                 ]
             );
         }

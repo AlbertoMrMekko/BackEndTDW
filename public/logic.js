@@ -43,12 +43,12 @@ class Person extends Element {
 }
 
 class User {
-    constructor(id, username, password, role, email, birth, nickname) {
+    constructor(id, username, password, role, active, email, birth, nickname) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.role = role;
-        // this.active = active;
+        this.active = active;
         this.email = email;
         this.birth = birth;
         this.nickname = nickname;
@@ -256,9 +256,7 @@ function signup() {
         xhr.setRequestHeader("Content-type", "application/json");
         xhr.onload = function() {
             if (xhr.status === 201) {
-                alert("STATUS 201"); // eliminar
                 let response = JSON.parse(xhr.responseText);
-                console.log("Response : \n" + response); // eliminar
                 // enviar mensaje de éxito
                 alert("Usuario creado correctamente.");
                 // cargar index
@@ -1862,7 +1860,7 @@ function loadProfile() {
     getElementsFromDB(`/users/${userId}`, function (response) {
         let jsonResponse = JSON.parse(response);
         let user = jsonResponse.user;
-        let myUser = new User(null, user.username, null, user.role, user.email, user.birth, user.nickname);
+        let myUser = new User(null, user.username, null, user.role, null, user.email, user.birth, user.nickname);
         let form = document.createElement("form");
         form.innerHTML = '<p>Mi perfil</p>';
         form.innerHTML += '<br>';
@@ -1930,7 +1928,7 @@ function loadUserManagement() {
         let arrayUsers = jsonResponse.users;
         let users = arrayUsers.map(function(item) {
             let u = item.user;
-            return new User(u.id, u.username, null, u.role, null, null, null);
+            return new User(u.id, u.username, null, u.role, u.active, null, null, null);
         });
         clean();
         let main = document.getElementById("main");
@@ -1952,6 +1950,10 @@ function loadUserManagement() {
                     tbody.innerHTML += '<input type = "button" value = "Cambiar a rol writer" onclick = "editUser(' + id + ');"/>';
                 else
                     tbody.innerHTML += '<input type = "button" value = "Cambiar a rol reader" onclick = "editUser(' + id + ');"/>';
+                if(users[i].active)
+                    tbody.innerHTML += '<input type = "button" value = "Desactivar usuario" onclick = "blockUser(' + id + ');"/>';
+                else
+                    tbody.innerHTML += '<input type = "button" value = "Reactivar usuario" onclick = "blockUser(' + id + ');"/>';
                 tbody.innerHTML += '<input type = "button" value = "Eliminar" onclick = "deleteUser(' + id + ');"/>';
             }
             else
@@ -1967,7 +1969,7 @@ function showUser(id) {
     getElementsFromDB(`/users/${id}`, function (response) {
         let jsonResponse = JSON.parse(response);
         let user = jsonResponse.user;
-        let myUser = new User(null, user.username, null, user.role, user.email, user.birth, user.nickname);
+        let myUser = new User(null, user.username, null, user.role, user.active, user.email, user.birth, user.nickname);
         clean();
         let main = document.getElementById("main");
         let index = putIndex();
@@ -1985,6 +1987,8 @@ function showUser(id) {
         form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth" value = "' + myUser.birth + '" readonly/>';
         form.innerHTML += '<label for = "Nickname" class = "label">Apodo</label>';
         form.innerHTML += '<input id = "Nickname" class = "input" type = "text" name = "Nickname" value = "' + myUser.nickname + '" readonly/>';
+        form.innerHTML += '<label for = "Active" class = "label">Activo</label>';
+        form.innerHTML += '<input id = "Active" class = "input" type = "text" name = "Active" value = "' + myUser.active + '" readonly/>';
         form.innerHTML += '<br>';
         form.innerHTML += '<input type = "button" name = "Back" value = "Atrás" onclick = "loadUserManagement();"/>';
         main.appendChild(form);
@@ -2004,6 +2008,21 @@ function editUser(id) {
         let editedUser = {
             "username": username,
             "role": newRole
+        }
+        putToDatabase(`/users/${id}`, editedUser);
+        loadIndex();
+    });
+}
+
+function blockUser(id) {
+    getElementsFromDB(`/users/${id}`, function (response) {
+        let jsonResponse = JSON.parse(response);
+        let user = jsonResponse.user;
+        let username = user.username;
+        let newActive = !user.active
+        let editedUser = {
+            "username": username,
+            "active": newActive
         }
         putToDatabase(`/users/${id}`, editedUser);
         loadIndex();

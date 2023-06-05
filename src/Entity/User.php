@@ -66,6 +66,13 @@ class User implements JsonSerializable, Stringable
     protected Role $role;
 
     #[ORM\Column(
+        name: "active",
+        type: "boolean",
+        nullable: false
+    )]
+    protected string $active;
+
+    #[ORM\Column(
         name: "birth",
         type: "datetime",
         nullable: true
@@ -105,6 +112,7 @@ class User implements JsonSerializable, Stringable
         $this->email    = $email;
         $this->setPassword($password);
         $this->setRole($role);
+        $this->active = true;
         $this->birth = $birth;
         $this->setNickname($nickname);
     }
@@ -189,6 +197,27 @@ class User implements JsonSerializable, Stringable
         } catch (ValueError) {
             throw new InvalidArgumentException('Invalid Role');
         }
+    }
+
+    /**
+     * Get user active
+     *
+     * @return string
+     */
+    public function getActive(): bool
+    {
+        return $this->active;
+    }
+
+    /**
+     * Set user active
+     *
+     * @param bool $active active
+     * @return void
+     */
+    public function setActive(bool $active): void
+    {
+        $this->active = $active;
     }
 
     /**
@@ -303,6 +332,7 @@ class User implements JsonSerializable, Stringable
                 'username' => $this->getUsername(),
                 'email' => $this->getEmail(),
                 'role' => $this->role->name,
+                'active' => $this->getActive(),
                 'birth' => $this->getBirth()?->format('Y-m-d'),
                 'nickname' => $this->getNickname()
             ]
