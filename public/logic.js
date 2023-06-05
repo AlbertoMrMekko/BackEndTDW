@@ -43,7 +43,7 @@ class Person extends Element {
 }
 
 class User {
-    constructor(id, username, password, role, email, birth) {
+    constructor(id, username, password, role, email, birth, nickname) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -51,6 +51,7 @@ class User {
         // this.active = active;
         this.email = email;
         this.birth = birth;
+        this.nickname = nickname;
     }
 }
 
@@ -1861,7 +1862,7 @@ function loadProfile() {
     getElementsFromDB(`/users/${userId}`, function (response) {
         let jsonResponse = JSON.parse(response);
         let user = jsonResponse.user;
-        let myUser = new User(null, user.username, null, user.role, user.email, null); // cambiar birth por null cuando lo meta como atrib en la BD
+        let myUser = new User(null, user.username, null, user.role, user.email, user.birth, user.nickname);
         let form = document.createElement("form");
         form.innerHTML = '<p>Mi perfil</p>';
         form.innerHTML += '<br>';
@@ -1871,8 +1872,10 @@ function loadProfile() {
         form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + myUser.role + '" readonly/>';
         form.innerHTML += '<label for = "Email" class = "label">Email</label>';
         form.innerHTML += '<input id = "Email" class = "input" type = "text" name = "Email" value = "' + myUser.email + '"/>';
-        // form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
-        // form.innerHTML += '<input id = "Birth" class = "input" type = "text" name = "Birth" value = "' + user.birth + '"/>';
+        form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+        form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth" value = "' + user.birth + '"/>';
+        form.innerHTML += '<label for = "Nickname" class = "label">Apodo</label>';
+        form.innerHTML += '<input id = "Nickname" class = "input" type = "text" name = "Nickname" value = "' + myUser.nickname + '"/>';
         form.innerHTML += '<br>';
         form.innerHTML += '<input type = "button" name = "Cancel" value = "Cancelar" onclick = "loadIndex();"/>';
         form.innerHTML += '<input type = "button" name = "Submit" value = "Guardar" onclick = "editProfile();"/>';
@@ -1888,11 +1891,14 @@ function loadProfile() {
 
 function editProfile() {
     let email = document.getElementById("Email").value;
-    // let birth = document.getElementById("Birth").value;
+    let birth = document.getElementById("Birth").value;
+    let nickname = document.getElementById("Nickname").value;
     let editedUser = {
         "username": username,
         "email": email,
-        "role": userRole
+        "role": userRole,
+        "birth": birth,
+        "nickname": nickname
     }
     putToDatabase(`/users/${userId}`, editedUser);
     loadIndex();
@@ -1924,7 +1930,7 @@ function loadUserManagement() {
         let arrayUsers = jsonResponse.users;
         let users = arrayUsers.map(function(item) {
             let u = item.user;
-            return new User(u.id, u.username, null, u.role, null, null);
+            return new User(u.id, u.username, null, u.role, null, null, null);
         });
         clean();
         let main = document.getElementById("main");
@@ -1961,7 +1967,7 @@ function showUser(id) {
     getElementsFromDB(`/users/${id}`, function (response) {
         let jsonResponse = JSON.parse(response);
         let user = jsonResponse.user;
-        let myUser = new User(null, user.username, null, user.role, user.email, null); // cambiar user.birth por null cuando lo meta
+        let myUser = new User(null, user.username, null, user.role, user.email, user.birth, user.nickname);
         clean();
         let main = document.getElementById("main");
         let index = putIndex();
@@ -1975,8 +1981,10 @@ function showUser(id) {
         form.innerHTML += '<input id = "Role" class = "input" type = "text" name = "Role" value = "' + myUser.role + '" readonly/>';
         form.innerHTML += '<label for = "Email" class = "label">Email</label>';
         form.innerHTML += '<input id = "Email" class = "input" type = "text" name = "Email" value = "' + myUser.email + '" readonly/>';
-        // form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
-        // form.innerHTML += '<input id = "Birth" class = "input" type = "text" name = "Birth" value = "' + myUser.birth + '" readonly/>';
+        form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
+        form.innerHTML += '<input id = "Birth" class = "input" type = "date" name = "Birth" value = "' + myUser.birth + '" readonly/>';
+        form.innerHTML += '<label for = "Nickname" class = "label">Apodo</label>';
+        form.innerHTML += '<input id = "Nickname" class = "input" type = "text" name = "Nickname" value = "' + myUser.nickname + '" readonly/>';
         form.innerHTML += '<br>';
         form.innerHTML += '<input type = "button" name = "Back" value = "Atrás" onclick = "loadUserManagement();"/>';
         main.appendChild(form);

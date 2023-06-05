@@ -98,7 +98,7 @@ class User implements JsonSerializable, Stringable
         string $password = '',
         Role|string $role = Role::READER,
         ?DateTime $birth = null,
-        ?string $nickname = null
+        ?string $nickname = ""
     ) {
         $this->id       = 0;
         $this->username = $username;
@@ -106,7 +106,7 @@ class User implements JsonSerializable, Stringable
         $this->setPassword($password);
         $this->setRole($role);
         $this->birth = $birth;
-        $this->nickname = $nickname;
+        $this->setNickname($nickname);
     }
 
     /**
