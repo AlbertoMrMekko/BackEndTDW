@@ -103,7 +103,12 @@ class UpdateCommand
 
         // birth
         if (isset($req_data['birth'])) {
-            $user->setBirthDate(DateTime::createFromFormat('!Y-m-d', $req_data['birth']));
+            $user->setBirth(DateTime::createFromFormat('!Y-m-d', $req_data['birth']));
+        }
+
+        // nickname
+        if (isset($req_data['nickname'])) {
+            $user->setNickname($req_data['nickname']);
         }
 
         $this->entityManager->flush();

@@ -12,6 +12,7 @@ namespace TDW\ACiencia\Controller\User;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM;
 use Fig\Http\Message\StatusCodeInterface as StatusCode;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Http\Response;
 use TDW\ACiencia\Controller\TraitController;
@@ -62,11 +63,13 @@ class CreateCommand
                 $req_data['email'],
                 $req_data['password'],
                 Role::READER,
-                null
+                null,
+                ""
             );
         } catch (Throwable) {    // 400 BAD REQUEST: Unexpected role
             return Error::createResponse($response, StatusCode::STATUS_BAD_REQUEST);
         }
+
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 

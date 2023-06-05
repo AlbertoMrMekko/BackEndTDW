@@ -1162,6 +1162,9 @@ components:
           description: User birth date
           type: string
           format: date
+        nickname:
+          description: User nickname
+          type: string
         # _links:
         #   description: link relations
         #   type: object
@@ -1185,6 +1188,7 @@ components:
           email: miw.etsisi@upm.es
           role: reader
           birth: "2023-09-04"
+          nickname: nickname
           # _links:
           #   parent:
           #     href: /api/v1/users
@@ -1415,12 +1419,16 @@ components:
                 type: string
                 format: date
                 default: null
+              nickname:
+                description: User nickname
+                type: string
             example:
               username: username
               email: User_email@example.com
               password: User_password
               role: reader
               birth: 2000-01-01
+              nickname: nickname
     LoginRequestBody:
       description: Registered **username** and **password**
       required: true

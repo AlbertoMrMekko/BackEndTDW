@@ -72,6 +72,14 @@ class User implements JsonSerializable, Stringable
     )]
     protected DateTime | null $birth = null;
 
+    #[ORM\Column(
+        name: "nickname",
+        type: "string",
+        length: 32,
+        nullable: true
+    )]
+    protected string $nickname;
+
     /**
      * User constructor.
      *
@@ -80,6 +88,7 @@ class User implements JsonSerializable, Stringable
      * @param string $password password
      * @param Role|string $role Role::*
      * @param DateTime|null $birth birth
+     * @param string|null $nickname nickname
      *
      * @throws InvalidArgumentException
      */
@@ -88,7 +97,8 @@ class User implements JsonSerializable, Stringable
         string $email = '',
         string $password = '',
         Role|string $role = Role::READER,
-        ?DateTime $birth = null
+        ?DateTime $birth = null,
+        ?string $nickname = null
     ) {
         $this->id       = 0;
         $this->username = $username;
@@ -96,6 +106,7 @@ class User implements JsonSerializable, Stringable
         $this->setPassword($password);
         $this->setRole($role);
         $this->birth = $birth;
+        $this->nickname = $nickname;
     }
 
     /**
@@ -180,14 +191,46 @@ class User implements JsonSerializable, Stringable
         }
     }
 
+    /**
+     * Get birth
+     *
+     * @return DateTime
+     */
     final public function getBirth(): ?DateTime
     {
         return $this->birth;
     }
 
-    final public function setBirthDate(?DateTime $birth): void
+    /**
+     * Set birth
+     *
+     * @param string $birth birth
+     * @return void
+     */
+    final public function setBirth(?DateTime $birth): void
     {
         $this->birth = $birth;
+    }
+
+    /**
+     * Get nickname
+     *
+     * @return string
+     */
+    public function getNickname(): string
+    {
+        return $this->nickname;
+    }
+
+    /**
+     * Set nickname
+     *
+     * @param string $nickname nickname
+     * @return void
+     */
+    public function setNickname(string $nickname): void
+    {
+        $this->nickname = $nickname;
     }
 
     /**
@@ -237,12 +280,14 @@ class User implements JsonSerializable, Stringable
     {
         return
             sprintf(
-                '[%s: (id=%04d, username="%s", email="%s", role="%s")]',
+                '[%s: (id=%04d, username="%s", email="%s", role="%s", birth="%s", nickname="%s")]',
                 basename(self::class),
                 $this->getId(),
                 $this->getUsername(),
                 $this->getEmail(),
                 $this->role->name,
+                $this->getBirth()->format('!Y-m-d'),
+                $this->getNickname()
             );
     }
 
@@ -259,6 +304,7 @@ class User implements JsonSerializable, Stringable
                 'email' => $this->getEmail(),
                 'role' => $this->role->name,
                 'birth' => $this->getBirth()?->format('Y-m-d'),
+                'nickname' => $this->getNickname()
             ]
         ];
     }
