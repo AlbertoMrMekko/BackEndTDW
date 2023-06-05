@@ -64,7 +64,7 @@ function clean() {
 
 function putIndex() {
     let section = document.createElement("section");
-    section.innerHTML = '<p onclick="loadIndex()">INICIO</p>'
+    section.innerHTML = '<p onclick="loadIndex()">INICIO</p>';
     return(section);
 }
 
@@ -92,9 +92,8 @@ function getElementsFromDB(relativePath, f) {
             f(JSON.stringify(xhr.response));
         }
         else {
-            alert("status " + xhr.status);
             let listName = relativePath.substring(1);
-            f(`"${listName}":[]`); // comprobar
+            f(`{"${listName}":[]}`);
         }
     }
     xhr.send();
@@ -107,10 +106,8 @@ function getFromDB(relativePath, f) {
     xhr.setRequestHeader("Authorization", "Bearer " + access_token);
     xhr.responseType = "json";
     xhr.onload = function () {
-        if(xhr.status === 200)
+        if (xhr.status === 200)
             f(JSON.stringify(xhr.response));
-        else
-            alert("status " + xhr.status);
     }
     xhr.send();
 }
@@ -123,7 +120,7 @@ function postToDatabase(relativePath, object, f) {
     xhr.setRequestHeader("Content-type", "application/json");
     let jsonObject = JSON.stringify(object);
     xhr.onload = () => {
-        if(xhr.status === 201){
+        if(xhr.status === 201) {
             alert("Operación realizada con éxito");
             f(xhr.response);
         }
@@ -214,23 +211,18 @@ function login() {
     xhr.setRequestHeader("Content-type", "application/json");
     xhr.onload = function() {
         if (xhr.status === 200) {
-            // coger Authorization de la cabecera de la respuesta
             let authHeader = xhr.getResponseHeader('Authorization');
-            // coger el token para hacer peticiones
-            access_token = authHeader.split(' ')[1]; // Quitar 'Bearer '
-            // coger la parte de los datos
+            access_token = authHeader.split(' ')[1];
             let data = JSON.parse(atob(access_token.split('.')[1]));
-            // meter los datos en username, userId y userRole
             username = data.sub;
             userId = data.uid;
             if(data.scopes == "reader,writer")
                 userRole = "writer";
             else
                 userRole = "reader";
-            // cargar index
             loadIndex();
         } else {
-            alert("Error: Status = " + xhr.status);
+            alert("Error: Usuario o contraseña incorrectos.");
             start();
         }
     };
@@ -249,7 +241,7 @@ function signup() {
             "email": email,
             "password": passwordForm,
             "role": "reader"
-        }
+        };
         let xhr = new XMLHttpRequest();
         let finalPath = COMMON_PATH + "/users";
         xhr.open('POST', finalPath, true);
@@ -257,9 +249,7 @@ function signup() {
         xhr.onload = function() {
             if (xhr.status === 201) {
                 let response = JSON.parse(xhr.responseText);
-                // enviar mensaje de éxito
                 alert("Usuario creado correctamente.");
-                // cargar index
                 start();
 
             } else {
@@ -350,7 +340,6 @@ function createProductstbody(url, table) {
             let p = item.product;
             return new Product(p.id, p.name, null, null, p.imageUrl, null, null, null);
         });
-
         if(userRole === "reader")
             createReaderProductstbody(products, table);
         else
@@ -393,8 +382,6 @@ function createReaderProductstbody(products, table) {
         let product = products[i];
         let tr = document.createElement("tr");
         let td = document.createElement("td");
-
-        // meter en td la info.
         let img = document.createElement("img");
         img.setAttribute("src", product.image);
         img.setAttribute("alt", product.name);
@@ -406,7 +393,6 @@ function createReaderProductstbody(products, table) {
         a.setAttribute("id", product.id);
         a.addEventListener('click', showProduct);
         td.appendChild(a);
-
         tr.appendChild(td);
         table.querySelector("tbody").appendChild(tr);
     }
@@ -417,8 +403,6 @@ function createReaderPeopletbody(people, table) {
         let person = people[i];
         let tr = document.createElement("tr");
         let td = document.createElement("td");
-
-        // meter en td la info.
         let img = document.createElement("img");
         img.setAttribute("src", person.image);
         img.setAttribute("alt", person.name);
@@ -430,7 +414,6 @@ function createReaderPeopletbody(people, table) {
         a.setAttribute("id", person.id);
         a.addEventListener('click', showPerson);
         td.appendChild(a);
-
         tr.appendChild(td);
         table.querySelector("tbody").appendChild(tr);
     }
@@ -441,8 +424,6 @@ function createReaderEntitiestbody(entities, table) {
         let entity = entities[i];
         let tr = document.createElement("tr");
         let td = document.createElement("td");
-
-        // meter en td la info.
         let img = document.createElement("img");
         img.setAttribute("src", entity.image);
         img.setAttribute("alt", entity.name);
@@ -454,7 +435,6 @@ function createReaderEntitiestbody(entities, table) {
         a.setAttribute("id", entity.id);
         a.addEventListener('click', showEntity);
         td.appendChild(a);
-
         tr.appendChild(td);
         table.querySelector("tbody").appendChild(tr);
     }
@@ -467,8 +447,6 @@ function createWriterProductstbody(products, table) {
         let product = products[i];
         tr = document.createElement("tr");
         td = document.createElement("td");
-
-        // meter en td la info.
         let img = document.createElement("img");
         img.setAttribute("src", product.image);
         img.setAttribute("alt", product.name);
@@ -492,7 +470,6 @@ function createWriterProductstbody(products, table) {
         deleteButton.innerText = "Borrar";
         deleteButton.addEventListener('click', deleteProduct);
         td.appendChild(deleteButton);
-
         tr.appendChild(td);
         table.querySelector("tbody").appendChild(tr);
     }
@@ -515,8 +492,6 @@ function createWriterPeopletbody(people, table) {
         let person = people[i];
         tr = document.createElement("tr");
         td = document.createElement("td");
-
-        // meter en td la info.
         let img = document.createElement("img");
         img.setAttribute("src", person.image);
         img.setAttribute("alt", person.name);
@@ -540,7 +515,6 @@ function createWriterPeopletbody(people, table) {
         deleteButton.innerText = "Borrar";
         deleteButton.addEventListener('click', deletePerson);
         td.appendChild(deleteButton);
-
         tr.appendChild(td);
         table.querySelector("tbody").appendChild(tr);
     }
@@ -563,8 +537,6 @@ function createWriterEntitiestbody(entities, table) {
         let entity = entities[i];
         tr = document.createElement("tr");
         td = document.createElement("td");
-
-        // meter en td la info.
         let img = document.createElement("img");
         img.setAttribute("src", entity.image);
         img.setAttribute("alt", entity.name);
@@ -588,7 +560,6 @@ function createWriterEntitiestbody(entities, table) {
         deleteButton.innerText = "Borrar";
         deleteButton.addEventListener('click', deleteEntity);
         td.appendChild(deleteButton);
-
         tr.appendChild(td);
         table.querySelector("tbody").appendChild(tr);
     }
@@ -681,7 +652,7 @@ function generateCreateElementForm(related1, related2, type) {
     else if(type === "entity")
         form.innerHTML = '<p>Crear entidad</p>';
     else
-        form.innerHTML = '<p>Crear producto</p>';
+        form.innerHTML = '<p>Crear persona</p>';
     form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
     form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name"/>';
     form.innerHTML += '<label for = "Birth" class = "label">Fecha de nacimiento</label>';
@@ -735,7 +706,6 @@ function newProduct() {
                 let p = item.person;
                 return p.id;
             });
-
             let nameForm = document.getElementById("Name").value;
             let birthForm = document.getElementById("Birth").value;
             let deathForm = document.getElementById("Death").value;
@@ -764,7 +734,7 @@ function newProduct() {
                     "deathDate": deathForm,
                     "imageUrl": imageForm,
                     "wikiUrl": wikiForm
-                }
+                };
                 postToDatabase("/products", basicProduct, function (response) {
                     let product = JSON.parse(response).product;
                     let productId = product.id;
@@ -772,14 +742,14 @@ function newProduct() {
                         let request = {
                             "productId": productId,
                             "entityId": checked1[i]
-                        }
+                        };
                         putToDatabase(`/products/${productId}/entities/add/${checked1[i]}`, request);
                     }
                     for(let i = 0; i < checked2.length; i++) {
                         let request = {
                             "productId": productId,
                             "personId": checked2[i]
-                        }
+                        };
                         putToDatabase(`/products/${productId}/persons/add/${checked2[i]}`, request);
                     }
                     loadIndex();
@@ -806,7 +776,6 @@ function newPerson() {
                 let e = item.entity;
                 return e.id;
             });
-
             let nameForm = document.getElementById("Name").value;
             let birthForm = document.getElementById("Birth").value;
             let deathForm = document.getElementById("Death").value;
@@ -835,7 +804,7 @@ function newPerson() {
                     "deathDate": deathForm,
                     "imageUrl": imageForm,
                     "wikiUrl": wikiForm
-                }
+                };
                 postToDatabase("/persons", basicPerson, function (response) {
                     let person = JSON.parse(response).person;
                     let personId = person.id;
@@ -843,14 +812,14 @@ function newPerson() {
                         let request = {
                             "personId": personId,
                             "productId": checked1[i]
-                        }
+                        };
                         putToDatabase(`/persons/${personId}/products/add/${checked1[i]}`, request);
                     }
                     for(let i = 0; i < checked2.length; i++) {
                         let request = {
                             "personId": personId,
                             "entityId": checked2[i]
-                        }
+                        };
                         putToDatabase(`/persons/${personId}/entities/add/${checked2[i]}`, request);
                     }
                     loadIndex();
@@ -877,7 +846,6 @@ function newEntity() {
                 let p = item.person;
                 return p.id;
             });
-
             let nameForm = document.getElementById("Name").value;
             let birthForm = document.getElementById("Birth").value;
             let deathForm = document.getElementById("Death").value;
@@ -906,7 +874,7 @@ function newEntity() {
                     "deathDate": deathForm,
                     "imageUrl": imageForm,
                     "wikiUrl": wikiForm
-                }
+                };
                 postToDatabase("/entities", basicEntity, function (response) {
                     let entity = JSON.parse(response).entity;
                     let entityId = entity.id;
@@ -914,14 +882,14 @@ function newEntity() {
                         let request = {
                             "entityId": entityId,
                             "productId": checked1[i]
-                        }
+                        };
                         putToDatabase(`/entities/${entityId}/products/add/${checked1[i]}`, request);
                     }
                     for(let i = 0; i < checked2.length; i++) {
                         let request = {
                             "entityId": entityId,
                             "personId": checked2[i]
-                        }
+                        };
                         putToDatabase(`/entities/${entityId}/persons/add/${checked2[i]}`, request);
                     }
                     loadIndex();
@@ -980,10 +948,14 @@ function generateElementInfo(myElement, type) {
     }
     let info = document.createElement("section");
     info.innerHTML = '<h3><b>' + myElement.name + '</b></h3>';
-    if(myElement.birth !== null)
-        info.innerHTML += '<h4><b>' + myElement.birth + '</b></h4>';
-    if(myElement.death !== null)
-        info.innerHTML += '<h4><b>' + myElement.death + '</b></h4>';
+    if(myElement.birth !== null) {
+        let date = myElement.birth.split("-");
+        info.innerHTML += '<h4><b>' + date[2] + " - " + date[1] + " - " + date[0] + '</b></h4>';
+    }
+    if(myElement.death !== null) {
+        let date = myElement.death.split("-");
+        info.innerHTML += '<h4><b>' + date[2] + " - " + date[1] + " - " + date[0] + '</b></h4>';
+    }
     if(myElement.image !== null)
         info.innerHTML += '<img class="bigImage" src="' + myElement.image + '" alt="' + myElement.name + '" width="10%"/>';
     main.appendChild(info);
@@ -1054,7 +1026,7 @@ function productRelatedPeople(id, array, section) {
             elements = arrayPeople.map(function (item) {
                 let p = item.person;
                 return new Person(p.id, p.name, null, null, p.imageUrl, null, null, null);
-            })
+            });
             for(let i = 0; i < elements.length; i++) {
                 let article = document.createElement("article");
                 let img = document.createElement("img");
@@ -1086,7 +1058,7 @@ function personRelatedProducts(id, array, section) {
             elements = arrayProducts.map(function (item) {
                 let p = item.product;
                 return new Product(p.id, p.name, null, null, p.imageUrl, null, null, null);
-            })
+            });
             for(let i = 0; i < elements.length; i++) {
                 let article = document.createElement("article");
                 let img = document.createElement("img");
@@ -1118,7 +1090,7 @@ function personRelatedEntities(id, array, section) {
             elements = arrayEntities.map(function (item) {
                 let e = item.entity;
                 return new Entity(e.id, e.name, null, null, e.imageUrl, null, null, null);
-            })
+            });
             for(let i = 0; i < elements.length; i++) {
                 let article = document.createElement("article");
                 let img = document.createElement("img");
@@ -1150,7 +1122,7 @@ function entityRelatedProducts(id, array, section) {
             elements = arrayProducts.map(function (item) {
                 let p = item.product;
                 return new Product(p.id, p.name, null, null, p.imageUrl, null, null, null);
-            })
+            });
             for(let i = 0; i < elements.length; i++) {
                 let article = document.createElement("article");
                 let img = document.createElement("img");
@@ -1182,7 +1154,7 @@ function entityRelatedPeople(id, array, section) {
             elements = arrayPeople.map(function (item) {
                 let p = item.person;
                 return new Person(p.id, p.name, null, null, p.imageUrl, null, null, null);
-            })
+            });
             for(let i = 0; i < elements.length; i++) {
                 let article = document.createElement("article");
                 let img = document.createElement("img");
@@ -1252,7 +1224,6 @@ function generateEditProductForm(myProduct) {
                 return new Person(p.id, p.name, null, null, null, null, null, null);
             });
 
-            // cargar formulario
             clean();
             let main = document.getElementById("main");
             let index = putIndex();
@@ -1273,7 +1244,6 @@ function generateEditProductForm(myProduct) {
             form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki" value = "' + myProduct.wiki + '"/>';
             main.appendChild(form);
 
-            // cargar relacionados
             let div1 = document.createElement("div");
             form.appendChild(div1);
             div1.innerHTML += '<p>Entidades relacionadas</p>';
@@ -1327,7 +1297,6 @@ function generateEditPersonForm(myPerson) {
                 return new Entity(e.id, e.name, null, null, null, null, null, null);
             });
 
-            // cargar formulario
             clean();
             let main = document.getElementById("main");
             let index = putIndex();
@@ -1348,7 +1317,6 @@ function generateEditPersonForm(myPerson) {
             form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki" value = "' + myPerson.wiki + '"/>';
             main.appendChild(form);
 
-            // cargar relacionados
             let div1 = document.createElement("div");
             form.appendChild(div1);
             div1.innerHTML += '<p>Productos relacionados</p>';
@@ -1402,7 +1370,6 @@ function generateEditEntityForm(myEntity) {
                 return new Person(p.id, p.name, null, null, null, null, null, null);
             });
 
-            // cargar formulario
             clean();
             let main = document.getElementById("main");
             let index = putIndex();
@@ -1423,7 +1390,6 @@ function generateEditEntityForm(myEntity) {
             form.innerHTML += '<input id = "Wiki" class = "input" type = "text" name = "Wiki" value = "' + myEntity.wiki + '"/>';
             main.appendChild(form);
 
-            // cargar relacionados
             let div1 = document.createElement("div");
             form.appendChild(div1);
             div1.innerHTML += '<p>Productos relacionados</p>';
@@ -1514,7 +1480,7 @@ function updateProduct(productId) {
                         "deathDate": deathForm,
                         "imageUrl": imageForm,
                         "wikiUrl": wikiForm
-                    }
+                    };
                     putToDatabase(`/products/${productId}`, basicProduct);
                     let notFound;
                     let foundBefore;
@@ -1538,13 +1504,13 @@ function updateProduct(productId) {
                             let request = {
                                 "productId": productId,
                                 "entityId": entities[i]
-                            }
+                            };
                             putToDatabase(`/products/${productId}/entities/rem/${entities[i]}`, request);
                         } else if (foundBefore === false && foundAfter === true) {
                             let request = {
                                 "productId": productId,
                                 "entityId": entities[i]
-                            }
+                            };
                             putToDatabase(`/products/${productId}/entities/add/${entities[i]}`, request);
                         }
                     }
@@ -1568,13 +1534,13 @@ function updateProduct(productId) {
                             let request = {
                                 "productId": productId,
                                 "personId": people[i]
-                            }
+                            };
                             putToDatabase(`/products/${productId}/persons/rem/${people[i]}`, request);
                         } else if (foundBefore === false && foundAfter === true) {
                             let request = {
                                 "productId": productId,
                                 "personId": people[i]
-                            }
+                            };
                             putToDatabase(`/products/${productId}/persons/add/${people[i]}`, request);
                         }
                     }
@@ -1636,7 +1602,7 @@ function updatePerson(personId) {
                         "deathDate": deathForm,
                         "imageUrl": imageForm,
                         "wikiUrl": wikiForm
-                    }
+                    };
                     putToDatabase(`/persons/${personId}`, basicPerson);
                     let notFound;
                     let foundBefore;
@@ -1660,13 +1626,13 @@ function updatePerson(personId) {
                             let request = {
                                 "personId": personId,
                                 "productId": products[i]
-                            }
+                            };
                             putToDatabase(`/persons/${personId}/products/rem/${products[i]}`, request);
                         } else if (foundBefore === false && foundAfter === true) {
                             let request = {
                                 "personId": personId,
                                 "productId": products[i]
-                            }
+                            };
                             putToDatabase(`/persons/${personId}/products/add/${products[i]}`, request);
                         }
                     }
@@ -1690,13 +1656,13 @@ function updatePerson(personId) {
                             let request = {
                                 "personId": personId,
                                 "entityId": entities[i]
-                            }
+                            };
                             putToDatabase(`/persons/${personId}/entities/rem/${entities[i]}`, request);
                         } else if (foundBefore === false && foundAfter === true) {
                             let request = {
                                 "personId": personId,
                                 "entityid": entities[i]
-                            }
+                            };
                             putToDatabase(`/persons/${personId}/entities/add/${entities[i]}`, request);
                         }
                     }
@@ -1758,7 +1724,7 @@ function updateEntity(entityId) {
                         "deathDate": deathForm,
                         "imageUrl": imageForm,
                         "wikiUrl": wikiForm
-                    }
+                    };
                     putToDatabase(`/entities/${entityId}`, basicEntity);
                     let notFound;
                     let foundBefore;
@@ -1782,13 +1748,13 @@ function updateEntity(entityId) {
                             let request = {
                                 "entityId": entityId,
                                 "productId": products[i]
-                            }
+                            };
                             putToDatabase(`/entities/${entityId}/products/rem/${products[i]}`, request);
                         } else if (foundBefore === false && foundAfter === true) {
                             let request = {
                                 "entityId": entityId,
                                 "productId": products[i]
-                            }
+                            };
                             putToDatabase(`/entities/${entityId}/products/add/${products[i]}`, request);
                         }
                     }
@@ -1812,13 +1778,13 @@ function updateEntity(entityId) {
                             let request = {
                                 "entityId": entityId,
                                 "personId": people[i]
-                            }
+                            };
                             putToDatabase(`/entities/${entityId}/persons/rem/${people[i]}`, request);
                         } else if (foundBefore === false && foundAfter === true) {
                             let request = {
                                 "entityId": entityId,
                                 "personId": people[i]
-                            }
+                            };
                             putToDatabase(`/entities/${entityId}/persons/add/${people[i]}`, request);
                         }
                     }
@@ -1897,7 +1863,7 @@ function editProfile() {
         "role": userRole,
         "birth": birth,
         "nickname": nickname
-    }
+    };
     putToDatabase(`/users/${userId}`, editedUser);
     loadIndex();
 }
@@ -1910,7 +1876,7 @@ function changePassword() {
             "username": username,
             "password": newPassword,
             "role": userRole
-        }
+        };
         putToDatabase(`/users/${userId}`, editedUser);
         loadIndex();
     }
@@ -2008,7 +1974,7 @@ function editUser(id) {
         let editedUser = {
             "username": username,
             "role": newRole
-        }
+        };
         putToDatabase(`/users/${id}`, editedUser);
         loadIndex();
     });
@@ -2023,7 +1989,7 @@ function blockUser(id) {
         let editedUser = {
             "username": username,
             "active": newActive
-        }
+        };
         putToDatabase(`/users/${id}`, editedUser);
         loadIndex();
     });
@@ -2033,24 +1999,3 @@ function deleteUser(id) {
     deleteOnDatabase(`/users/${id}`);
     loadUserManagement();
 }
-
-
-
-
-
-
-
-
-/*   // eliminar cuando meta los datos en la BD
-function loadLocalStorage() {
-    let person = new Person("Tim Berners-Lee", "08/06/1955", "", "https://upload.wikimedia.org/wikipedia/commons/4/4e/Sir_Tim_Berners-Lee_%28cropped%29.jpg", "https://es.wikipedia.org/wiki/Tim_Berners-Lee");
-    let entity = new Entity("CERN", "29/09/1954", "", "https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/CERN_logo.svg/1200px-CERN_logo.svg.png", "https://es.wikipedia.org/wiki/Organizaci%C3%B3n_Europea_para_la_Investigaci%C3%B3n_Nuclear", [person]);
-    let product = new Product("HTML", "01/01/1980", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/HTML5_logo_black.svg/2048px-HTML5_logo_black.svg.png", "https://es.wikipedia.org/wiki/HTML", [person], [entity]);
-    let person2 = new Person("Håkon Wium Lie", "26/07/1965", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/H%C3%A5kon-Wium-Lie-2009-03.jpg/1200px-H%C3%A5kon-Wium-Lie-2009-03.jpg", "https://en.wikipedia.org/wiki/H%C3%A5kon_Wium_Lie");
-    let entity2 = new Entity("IBM", "16/06/1911", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/IBM_logo.svg/1200px-IBM_logo.svg.png", "https://es.wikipedia.org/wiki/IBM", []);
-    let product2 = new Product("CSS", "17/12/1996", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/CSS3_logo_and_wordmark.svg/1200px-CSS3_logo_and_wordmark.svg.png", "https://es.wikipedia.org/wiki/CSS", [person2], []);
-    let person3 = new Person("Brendan Eich", "01/01/1961", "", "https://upload.wikimedia.org/wikipedia/commons/d/d1/Brendan_Eich_Mozilla_Foundation_official_photo.jpg", "https://es.wikipedia.org/wiki/Brendan_Eich");
-    let entity3 = new Entity("Netscape Communications", "04/04/1994", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Netscape_logo.svg/320px-Netscape_logo.svg.png", "https://es.wikipedia.org/wiki/Netscape_Communications_Corporation", [person3]);
-    let product3 = new Product("Javascript", "04/12/1995", "", "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Unofficial_JavaScript_logo_2.svg/1200px-Unofficial_JavaScript_logo_2.svg.png", "https://es.wikipedia.org/wiki/JavaScript", [person3], [entity3]);
-}
-*/
