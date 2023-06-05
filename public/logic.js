@@ -272,15 +272,18 @@ function loadIndex() {
     let main = document.getElementById("main");
     let username = putUsername();
     main.appendChild(username);
+    let section = document.createElement("section");
+    section.setAttribute("class", "indexSection");
+    main.appendChild(section);
     let form = logoutForm();
-    main.appendChild(form);
+    section.appendChild(form);
     let profile = profileForm();
-    main.appendChild(profile);
+    section.appendChild(profile);
     let elements = loadIndexTable();
     main.appendChild(elements);
     if(userRole === "writer") {
         let userManagement = userManagementForm();
-        main.appendChild(userManagement);
+        section.appendChild(userManagement);
     }
 }
 
@@ -310,6 +313,7 @@ function userManagementForm() {
 
 function loadIndexTable() {
     let section = document.createElement("section");
+    section.setAttribute("class", "indexTable");
     let tableProducts = createTable("Productos");
     let tablePeople = createTable("Personas");
     let tableEntities = createTable("Entidades");
@@ -647,6 +651,7 @@ function generateCreateElementForm(related1, related2, type) {
     let index = putIndex();
     let username = putUsername();
     let form = document.createElement("form");
+    form.setAttribute("class", "pageForm");
     if(type === "product")
         form.innerHTML = '<p>Crear producto</p>';
     else if(type === "entity")
@@ -943,7 +948,7 @@ function generateElementInfo(myElement, type) {
     main.appendChild(username);
     if(myElement.wiki !== null) {
         let wiki = document.createElement("section");
-        wiki.innerHTML = '<iframe src="' + myElement.wiki + '"></iframe>';
+        wiki.innerHTML = '<iframe class="wiki" src="' + myElement.wiki + '"></iframe>';
         main.appendChild(wiki);
     }
     let info = document.createElement("section");
@@ -960,10 +965,11 @@ function generateElementInfo(myElement, type) {
         info.innerHTML += '<img class="bigImage" src="' + myElement.image + '" alt="' + myElement.name + '" width="10%"/>';
     main.appendChild(info);
     let related = document.createElement("section");
-    let related1 = document.createElement("div");
-    related1.setAttribute("class", "foot1");
-    let related2 = document.createElement("div");
-    related2.setAttribute("class", "foot2");
+    related.setAttribute("class", "foot0");
+    let related1 = document.createElement("section");
+    related1.setAttribute("class", "foot");
+    let related2 = document.createElement("section");
+    related2.setAttribute("class", "foot");
     related.appendChild(related1);
     related.appendChild(related2);
     main.appendChild(related);
@@ -1231,6 +1237,7 @@ function generateEditProductForm(myProduct) {
             let username = putUsername();
             main.appendChild(username);
             let form = document.createElement("form");
+            form.setAttribute("class", "pageForm");
             form.innerHTML = '<h2>Editar producto</h2>';
             form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
             form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + myProduct.name + '"/>';
@@ -1304,6 +1311,7 @@ function generateEditPersonForm(myPerson) {
             let username = putUsername();
             main.appendChild(username);
             let form = document.createElement("form");
+            form.setAttribute("class", "pageForm");
             form.innerHTML = '<h2>Editar persona</h2>';
             form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
             form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + myPerson.name + '"/>';
@@ -1377,6 +1385,7 @@ function generateEditEntityForm(myEntity) {
             let username = putUsername();
             main.appendChild(username);
             let form = document.createElement("form");
+            form.setAttribute("class", "pageForm");
             form.innerHTML = '<h2>Editar entidad</h2>';
             form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';
             form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + myEntity.name + '"/>';
@@ -1828,6 +1837,7 @@ function loadProfile() {
         let user = jsonResponse.user;
         let myUser = new User(null, user.username, null, user.role, null, user.email, user.birth, user.nickname);
         let form = document.createElement("form");
+        form.setAttribute("class", "pageForm");
         form.innerHTML = '<p>Mi perfil</p>';
         form.innerHTML += '<br>';
         form.innerHTML += '<label for = "Name" class = "label">Nombre</label>';

@@ -1,6 +1,6 @@
 html {
     background-color: #C7FEFD;
-    position: relative; /* comprobar */
+    position: relative;
 }
 
 h1 {
@@ -56,8 +56,9 @@ iframe {
     width: 40%;
     height: 500px;
     float: right;
-    margin-top: 2%;
+    margin-top: 5%;
     margin-right: 2%;
+    margin-bottom: 1%;
 }
 
 aside {
@@ -80,17 +81,23 @@ img {
 }
 
 .bigImage {
-    width: 60%;
+    width: 30%;
     text-align: center;
 }
 
-.foot1 {
-    margin-bottom: 1%;
+.foot0 {
+    display: flex;
+    justify-content: space-between;
+    margin-left: 10%;
+    margin-right: 10%;
 }
 
-.foot2 {
-    right: 0;
-    margin-top: 1%;
+.foot {
+    border: 1px solid #2298B3;
+    background-color: aquamarine;
+    width: 30%;
+    text-align: center;
+    margin-top: 5%;
 }
 
 .imageFooter {
@@ -162,4 +169,26 @@ img {
 .username {
     position: absolute;
     right: 0;
+    margin-right: 2%;
+}
+
+.indexSection {
+    width: 70%;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2%;
+}
+
+.indexTable {
+    display: flex;
+    justify-content: space-between;
+}
+
+.pageForm {
+    border: 1px solid #2298B3;
+    background-color: aquamarine;
+    width: 70%;
+    margin-left: 15%;
+    margin-top: 3%;
+    text-align: center;
 }
