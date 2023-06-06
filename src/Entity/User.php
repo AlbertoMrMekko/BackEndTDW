@@ -112,7 +112,7 @@ class User implements JsonSerializable, Stringable
         $this->email    = $email;
         $this->setPassword($password);
         $this->setRole($role);
-        $this->active = true;
+        $this->active = false;
         $this->birth = $birth;
         $this->setNickname($nickname);
     }

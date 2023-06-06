@@ -235,34 +235,41 @@ function signup() {
     let passwordForm2 = document.getElementById("newPassword2").value;
     let email = usernameForm + "@example.com";
     let newUser;
-    if(passwordForm === passwordForm2) {
-        newUser = {
-            "username": usernameForm,
-            "email": email,
-            "password": passwordForm,
-            "role": "reader"
-        };
-        let xhr = new XMLHttpRequest();
-        let finalPath = COMMON_PATH + "/users";
-        xhr.open('POST', finalPath, true);
-        xhr.setRequestHeader("Content-type", "application/json");
-        xhr.onload = function() {
-            if (xhr.status === 201) {
-                let response = JSON.parse(xhr.responseText);
-                alert("Usuario creado correctamente.");
-                start();
+    if(usernameForm !== "" && passwordForm !== "") {
+        if(passwordForm === passwordForm2) {
+            newUser = {
+                "username": usernameForm,
+                "email": email,
+                "password": passwordForm,
+                "role": "reader"
+            };
+            let xhr = new XMLHttpRequest();
+            let finalPath = COMMON_PATH + "/users";
+            xhr.open('POST', finalPath, true);
+            xhr.setRequestHeader("Content-type", "application/json");
+            xhr.onload = function() {
+                if (xhr.status === 201) {
+                    let response = JSON.parse(xhr.responseText);
+                    alert("Usuario creado correctamente.\nPara iniciar sesión, espere a ser admitido por un usuario writer.");
+                    start();
 
-            } else {
-                alert("Error: Status = " + xhr.status);
-                start();
-            }
-        };
-        xhr.send(JSON.stringify(newUser));
+                } else {
+                    alert("Error: El nombre de usuario indicado ya existe.\nPor favor, introduzca otro nombre de usuario.");
+                    start();
+                }
+            };
+            xhr.send(JSON.stringify(newUser));
+        }
+        else {
+            alert("Error: Las contraseñas no coinciden.");
+            start();
+        }
     }
     else {
-        alert("Error: Las contraseñas no coinciden");
+        alert("Error: Todos los campos son obligatorios.");
         start();
     }
+
 }
 
 // ------------ INDEX ----------------
@@ -1257,11 +1264,13 @@ function generateEditProductForm(myProduct) {
             let notFound;
             for(let i = 0; i < entities.length; i++) {
                 notFound = true;
-                for(let j = 0; j < myProduct.relatedEntities.length && notFound; j++)
-                    if(entities[i].id === myProduct.relatedEntities[j]) {
-                        div1.innerHTML += `<input id="r1_${entities[i].id}" type="checkbox" checked="checked"/>${entities[i].name}`;
-                        notFound = false;
-                    }
+                if(myProduct.relatedEntities !== null) {
+                    for(let j = 0; j < myProduct.relatedEntities.length && notFound; j++)
+                        if(entities[i].id === myProduct.relatedEntities[j]) {
+                            div1.innerHTML += `<input id="r1_${entities[i].id}" type="checkbox" checked="checked"/>${entities[i].name}`;
+                            notFound = false;
+                        }
+                }
                 if(notFound)
                     div1.innerHTML += `<input id="r1_${entities[i].id}" type="checkbox"/>${entities[i].name}`;
             }
@@ -1270,11 +1279,13 @@ function generateEditProductForm(myProduct) {
             div2.innerHTML += '<p>Personas relacionadas</p>';
             for(let i = 0; i < people.length; i++) {
                 notFound = true;
-                for(let j = 0; j < myProduct.relatedPeople.length && notFound; j++)
-                    if(people[i].id === myProduct.relatedPeople[j]) {
-                        div2.innerHTML += `<input id="r2_${people[i].id}" type="checkbox" checked="checked"/>${people[i].name}`;
-                        notFound = false;
-                    }
+                if(myProduct.relatedPeople !== null) {
+                    for(let j = 0; j < myProduct.relatedPeople.length && notFound; j++)
+                        if(people[i].id === myProduct.relatedPeople[j]) {
+                            div2.innerHTML += `<input id="r2_${people[i].id}" type="checkbox" checked="checked"/>${people[i].name}`;
+                            notFound = false;
+                        }
+                }
                 if(notFound)
                     div2.innerHTML += `<input id="r2_${people[i].id}" type="checkbox"/>${people[i].name}`;
             }
@@ -1331,11 +1342,13 @@ function generateEditPersonForm(myPerson) {
             let notFound;
             for(let i = 0; i < products.length; i++) {
                 notFound = true;
-                for(let j = 0; j < myPerson.relatedProducts.length && notFound; j++)
-                    if(products[i].id === myPerson.relatedProducts[j]) {
-                        div1.innerHTML += `<input id="r1_${products[i].id}" type="checkbox" checked="checked"/>${products[i].name}`;
-                        notFound = false;
-                    }
+                if(myPerson.relatedProducts !== null) {
+                    for(let j = 0; j < myPerson.relatedProducts.length && notFound; j++)
+                        if(products[i].id === myPerson.relatedProducts[j]) {
+                            div1.innerHTML += `<input id="r1_${products[i].id}" type="checkbox" checked="checked"/>${products[i].name}`;
+                            notFound = false;
+                        }
+                }
                 if(notFound)
                     div1.innerHTML += `<input id="r1_${products[i].id}" type="checkbox"/>${products[i].name}`;
             }
@@ -1344,11 +1357,13 @@ function generateEditPersonForm(myPerson) {
             div2.innerHTML += '<p>Entidades relacionadas</p>';
             for(let i = 0; i < entities.length; i++) {
                 notFound = true;
-                for(let j = 0; j < myPerson.relatedEntities.length && notFound; j++)
-                    if(entities[i].id === myPerson.relatedEntities[j]) {
-                        div2.innerHTML += `<input id="r2_${entities[i].id}" type="checkbox" checked="checked"/>${entities[i].name}`;
-                        notFound = false;
-                    }
+                if(myPerson.relatedEntities !== null) {
+                    for(let j = 0; j < myPerson.relatedEntities.length && notFound; j++)
+                        if(entities[i].id === myPerson.relatedEntities[j]) {
+                            div2.innerHTML += `<input id="r2_${entities[i].id}" type="checkbox" checked="checked"/>${entities[i].name}`;
+                            notFound = false;
+                        }
+                }
                 if(notFound)
                     div2.innerHTML += `<input id="r2_${entities[i].id}" type="checkbox"/>${entities[i].name}`;
             }
@@ -1405,11 +1420,13 @@ function generateEditEntityForm(myEntity) {
             let notFound;
             for(let i = 0; i < products.length; i++) {
                 notFound = true;
-                for(let j = 0; j < myEntity.relatedProducts.length && notFound; j++)
-                    if(products[i].id === myEntity.relatedProducts[j]) {
-                        div1.innerHTML += `<input id="r1_${products[i].id}" type="checkbox" checked="checked"/>${products[i].name}`;
-                        notFound = false;
-                    }
+                if(myEntity.relatedProducts !== null) {
+                    for(let j = 0; j < myEntity.relatedProducts.length && notFound; j++)
+                        if(products[i].id === myEntity.relatedProducts[j]) {
+                            div1.innerHTML += `<input id="r1_${products[i].id}" type="checkbox" checked="checked"/>${products[i].name}`;
+                            notFound = false;
+                        }
+                }
                 if(notFound)
                     div1.innerHTML += `<input id="r1_${products[i].id}" type="checkbox"/>${products[i].name}`;
             }
@@ -1418,11 +1435,13 @@ function generateEditEntityForm(myEntity) {
             div2.innerHTML += '<p>Personas relacionadas</p>';
             for(let i = 0; i < people.length; i++) {
                 notFound = true;
-                for(let j = 0; j < myEntity.relatedPeople.length && notFound; j++)
-                    if(people[i].id === myEntity.relatedPeople[j]) {
-                        div2.innerHTML += `<input id="r2_${people[i].id}" type="checkbox" checked="checked"/>${people[i].name}`;
-                        notFound = false;
-                    }
+                if(myEntity.relatedPeople !== null) {
+                    for(let j = 0; j < myEntity.relatedPeople.length && notFound; j++)
+                        if(people[i].id === myEntity.relatedPeople[j]) {
+                            div2.innerHTML += `<input id="r2_${people[i].id}" type="checkbox" checked="checked"/>${people[i].name}`;
+                            notFound = false;
+                        }
+                }
                 if(notFound)
                     div2.innerHTML += `<input id="r2_${people[i].id}" type="checkbox"/>${people[i].name}`;
             }
@@ -1468,8 +1487,16 @@ function updateProduct(productId) {
                 getElementsFromDB(`/products/${productId}`, function (response) {
                     let jsonResponse = JSON.parse(response);
                     let product = jsonResponse.product;
-                    let checked1Before = product.entities;
-                    let checked2Before = product.persons;
+                    let checked1Before;
+                    if(product.entities === null)
+                        checked1Before = [];
+                    else
+                        checked1Before = product.entities;
+                    let checked2Before;
+                    if(product.persons === null)
+                        checked2Before = [];
+                    else
+                        checked2Before = product.persons;
 
                     let checked1After = [];
                     for (let i = 0; i < entities.length; i++) {
@@ -1590,8 +1617,16 @@ function updatePerson(personId) {
                 getElementsFromDB(`/persons/${personId}`, function (response) {
                     let jsonResponse = JSON.parse(response);
                     let person = jsonResponse.person;
-                    let checked1Before = person.products;
-                    let checked2Before = person.entities;
+                    let checked1Before;
+                    if(person.products === null)
+                        checked1Before = [];
+                    else
+                        checked1Before = person.products;
+                    let checked2Before;
+                    if(person.entities === null)
+                        checked2Before = [];
+                    else
+                        checked2Before = person.entities;
 
                     let checked1After = [];
                     for (let i = 0; i < products.length; i++) {
@@ -1712,8 +1747,16 @@ function updateEntity(entityId) {
                 getElementsFromDB(`/entities/${entityId}`, function (response) {
                     let jsonResponse = JSON.parse(response);
                     let entity = jsonResponse.entity;
-                    let checked1Before = entity.products;
-                    let checked2Before = entity.persons;
+                    let checked1Before;
+                    if(entity.products === null)
+                        checked1Before = [];
+                    else
+                        checked1Before = entity.products;
+                    let checked2Before;
+                    if(entity.persons === null)
+                        checked2Before = [];
+                    else
+                        checked2Before = entity.persons;
 
                     let checked1After = [];
                     for (let i = 0; i < products.length; i++) {
@@ -1929,7 +1972,7 @@ function loadUserManagement() {
                 if(users[i].active)
                     tbody.innerHTML += '<input type = "button" value = "Desactivar usuario" onclick = "blockUser(' + id + ');"/>';
                 else
-                    tbody.innerHTML += '<input type = "button" value = "Reactivar usuario" onclick = "blockUser(' + id + ');"/>';
+                    tbody.innerHTML += '<input type = "button" value = "Activar usuario" onclick = "blockUser(' + id + ');"/>';
                 tbody.innerHTML += '<input type = "button" value = "Eliminar" onclick = "deleteUser(' + id + ');"/>';
             }
             else
