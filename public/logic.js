@@ -249,7 +249,6 @@ function signup() {
             xhr.setRequestHeader("Content-type", "application/json");
             xhr.onload = function() {
                 if (xhr.status === 201) {
-                    let response = JSON.parse(xhr.responseText);
                     alert("Usuario creado correctamente.\nPara iniciar sesión, espere a ser admitido por un usuario writer.");
                     start();
 
