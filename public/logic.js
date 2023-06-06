@@ -1995,6 +1995,7 @@ function showUser(id) {
         let username = putUsername();
         main.appendChild(username);
         let form = document.createElement("form");
+        form.setAttribute("class", "pageForm");
         form.innerHTML = '<label for = "Name" class = "label">Nombre</label>';
         form.innerHTML += '<input id = "Name" class = "input" type = "text" name = "Name" value = "' + myUser.username + '" readonly/>';
         form.innerHTML += '<label for = "Role" class = "label">Rol</label>';
